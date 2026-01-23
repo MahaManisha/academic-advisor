@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../user/user.model.js";
+import StudentProfile from "../studentProfile/studentProfile.model.js";
+
 
 export const registerUser = async (data) => {
   const existingUser = await User.findOne({ email: data.email });
