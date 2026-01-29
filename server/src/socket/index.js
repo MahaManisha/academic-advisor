@@ -1,3 +1,4 @@
+// server/src/socket/index.js
 import setupPeerSocket from "./peer.socket.js";
 
 const setupSockets = (io) => {

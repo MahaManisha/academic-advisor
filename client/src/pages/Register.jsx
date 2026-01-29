@@ -1,6 +1,7 @@
+// client/src/pages/Register.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaGraduationCap, FaCalendarAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import './Register.css';
 
@@ -9,10 +10,12 @@ const Register = () => {
   const { register } = useAuth();
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
+    course: '',
+    year: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,34 +29,35 @@ const Register = () => {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+  // Validation
+  if (formData.password !== formData.confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+  if (formData.password.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      // Remove confirmPassword before sending to backend
-      const { confirmPassword, ...userData } = formData;
-      await register(userData);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const { confirmPassword, ...userData } = formData;
+    await register(userData);
+    
+    // ✅ NEW: New users always go to onboarding
+    navigate('/onboarding');
+  } catch (err) {
+    setError(err.message || 'Registration failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="register-container">
@@ -68,9 +72,9 @@ const Register = () => {
             <FaUser className="input-icon" />
             <input
               type="text"
-              name="fullName"
+              name="name"
               placeholder="Full Name"
-              value={formData.fullName}
+              value={formData.name}
               onChange={handleChange}
               required
               disabled={loading}
@@ -88,6 +92,43 @@ const Register = () => {
               required
               disabled={loading}
             />
+          </div>
+
+          <div className="input-group">
+            <FaGraduationCap className="input-icon" />
+            <select
+              name="course"
+              value={formData.course}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            >
+              <option value="">Select Course</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics Engineering">Electronics Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Business Administration">Business Administration</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="input-group">
+            <FaCalendarAlt className="input-icon" />
+            <select
+              name="year"
+              value={formData.year}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            >
+              <option value="">Select Year</option>
+              <option value="First Year">First Year</option>
+              <option value="Second Year">Second Year</option>
+              <option value="Third Year">Third Year</option>
+              <option value="Fourth Year">Fourth Year</option>
+            </select>
           </div>
 
           <div className="input-group">

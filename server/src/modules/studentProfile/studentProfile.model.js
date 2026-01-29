@@ -1,3 +1,4 @@
+// server/src/modules/studentProfile/studentProfile.model.js
 import mongoose from "mongoose";
 
 const skillSchema = new mongoose.Schema(

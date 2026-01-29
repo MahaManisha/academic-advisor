@@ -1,3 +1,4 @@
+// server/src/modules/gamification/gamification.model.js
 import mongoose from "mongoose";
 
 const gamificationSchema = new mongoose.Schema(

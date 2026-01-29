@@ -1,3 +1,4 @@
+// server/src/modules/gamification/gamification.controller.js
 import { updateProgress } from "./gamification.service.js";
 import Gamification from "./gamification.model.js";
 

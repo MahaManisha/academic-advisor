@@ -1,3 +1,4 @@
+// server/src/modules/studentProfile/studentProfile.controller.js
 import {
   getProfileByUserId,
   updateProfile

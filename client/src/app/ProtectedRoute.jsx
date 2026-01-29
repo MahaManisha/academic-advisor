@@ -1,19 +1,50 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  const location = useLocation();
 
   // Show loader while checking authentication
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
       }}>
-        <p>Loading...</p>
+        <div style={{
+          background: 'white',
+          padding: '40px',
+          borderRadius: '16px',
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid #f3f4f6',
+            borderTopColor: '#667eea',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }}></div>
+          <p style={{
+            margin: 0,
+            color: '#6b7280',
+            fontSize: '16px',
+            fontWeight: 600
+          }}>
+            Loading...
+          </p>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
       </div>
     );
   }
@@ -23,7 +54,24 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Render children if authenticated
+  // ✅ CRITICAL: Prevent admin from accessing student routes
+  const isAdmin = user?.role === 'admin' || user?.email === 'admin@gmail.com';
+  
+  if (isAdmin) {
+    // ✅ Admin should NEVER see student routes or onboarding
+    return <Navigate to="/admin" replace />;
+  }
+
+  // ✅ For STUDENTS: Check onboarding status
+  // Allow access to onboarding and assessment-test pages
+  const allowedPathsWithoutOnboarding = ['/onboarding', '/assessment-test'];
+  
+  if (!user?.onboardingCompleted && !allowedPathsWithoutOnboarding.includes(location.pathname)) {
+    // ✅ Redirect incomplete students to onboarding
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // ✅ All checks passed: render the component
   return children;
 };
 

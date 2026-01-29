@@ -1,3 +1,4 @@
+// server/src/modules/assessment/assessmentAttempt.model.js
 import mongoose from "mongoose";
 
 const assessmentAttemptSchema = new mongoose.Schema(

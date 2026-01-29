@@ -1,3 +1,4 @@
+// server/src/modules/studyPlanner/studyPlan.model.js
 import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema({

@@ -1,3 +1,4 @@
+// server/src/modules/studyPlanner/studyPlanner.controller.js
 import {
   generateStudyPlan,
   updateTaskStatus

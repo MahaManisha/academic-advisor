@@ -1,3 +1,4 @@
+// server/src/modules/gamification/gamification.service.js
 import Gamification from "./gamification.model.js";
 import {
   XP_RULES,

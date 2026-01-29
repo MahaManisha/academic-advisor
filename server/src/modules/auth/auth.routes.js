@@ -1,3 +1,4 @@
+// server/src/modules/auth/auth.routes.js
 import { Router } from "express";
 import { register, login } from "./auth.controller.js";
 

@@ -1,3 +1,4 @@
+// server/src/modules/recommendation/recommendation.routes.js
 import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
 import { generate, list } from "./recommendation.controller.js";

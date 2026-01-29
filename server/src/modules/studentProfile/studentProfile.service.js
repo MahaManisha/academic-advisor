@@ -1,3 +1,4 @@
+// server/src/modules/studentProfile/studentProfile.service.js
 import StudentProfile from "./studentProfile.model.js";
 
 export const getProfileByUserId = async (userId) => {

@@ -1,3 +1,4 @@
+// server/src/modules/assessment/question.model.js
 import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema(

@@ -1,3 +1,4 @@
+// server/src/modules/chatbot/prompt.builder.js
 export const buildAdvisorPrompt = ({
   profile,
   studyPlan,

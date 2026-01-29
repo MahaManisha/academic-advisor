@@ -1,3 +1,4 @@
+// client/src/App.jsx
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import AppRoutes from './app/routes';

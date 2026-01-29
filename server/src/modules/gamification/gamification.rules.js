@@ -1,3 +1,4 @@
+// server/src/modules/gamification/gamification.rules.js
 export const XP_RULES = {
   ASSESSMENT_COMPLETE: 50,
   STUDY_PLAN_COMPLETE: 30,

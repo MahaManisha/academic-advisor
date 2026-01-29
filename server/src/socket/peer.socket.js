@@ -1,3 +1,4 @@
+// server/src/socket/peer.socket.js
 import PeerChat from "../modules/peer/peerChat.model.js";
 
 const setupPeerSocket = (io, socket) => {

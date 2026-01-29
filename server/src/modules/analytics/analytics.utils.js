@@ -1,3 +1,4 @@
+// server/src/modules/analytics/analytics.utils.js
 export const detectWeaknesses = (attempts) => {
   const weakTopics = {};
 

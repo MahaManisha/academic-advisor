@@ -1,3 +1,4 @@
+// client/src/api/auth.api.js
 import axios from './axios';
 
 // Login user with credentials
@@ -21,8 +22,8 @@ export const getMe = async () => {
 // Admin login with default credentials
 export const adminLogin = async () => {
   const adminCredentials = {
-    email: 'admin@academicadvisor.com',
-    password: 'Admin@123'
+    email: 'admin@gmail.com',
+    password: '12345678'
   };
   const response = await axios.post('/auth/login', adminCredentials);
   return response.data;

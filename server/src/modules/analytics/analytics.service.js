@@ -1,3 +1,4 @@
+// server/src/modules/analytics/analytics.service.js
 import Analytics from "./analytics.model.js";
 import AssessmentAttempt from "../assessment/assessmentAttempt.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";

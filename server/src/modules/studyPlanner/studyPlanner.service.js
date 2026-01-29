@@ -1,3 +1,4 @@
+// server/src/modules/studyPlanner/studyPlanner.service.js
 import StudyPlan from "./studyPlan.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
 import Recommendation from "../recommendation/recommendation.model.js";

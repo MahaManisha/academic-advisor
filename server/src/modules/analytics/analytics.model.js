@@ -1,3 +1,4 @@
+// server/src/modules/analytics/analytics.model.js
 import mongoose from "mongoose";
 
 const analyticsSchema = new mongoose.Schema(

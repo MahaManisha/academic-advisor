@@ -1,3 +1,4 @@
+// server/src/modules/studyPlanner/planner.utils.js
 export const calculatePriority = (skillLevel) => {
   if (skillLevel === "beginner") return 3;
   if (skillLevel === "intermediate") return 2;

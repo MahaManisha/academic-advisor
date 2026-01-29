@@ -1,3 +1,4 @@
+// server/src/modules/analytics/analytics.controller.js
 import { generateAnalytics } from "./analytics.service.js";
 import Analytics from "./analytics.model.js";
 

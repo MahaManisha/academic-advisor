@@ -1,3 +1,4 @@
+// server/src/modules/auth/auth.service.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../user/user.model.js";
@@ -39,5 +40,9 @@ export const loginUser = async (data) => {
     { expiresIn: "1d" }
   );
 
-  return { token, user };
+  // FIXED: Return complete user object without password hash for security
+  const userResponse = user.toObject ? user.toObject() : user;
+  delete userResponse.passwordHash; // Never send password hash to client
+  
+  return { token, user: userResponse };
 };

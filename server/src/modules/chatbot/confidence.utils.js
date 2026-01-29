@@ -1,3 +1,4 @@
+// server/src/modules/chatbot/confidence.utils.js
 export const calculateConfidence = (responseText) => {
   if (!responseText) return 0;
 

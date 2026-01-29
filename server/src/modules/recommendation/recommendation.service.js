@@ -1,3 +1,4 @@
+// server/src/modules/recommendation/recommendation.service.js
 import StudentProfile from "../studentProfile/studentProfile.model.js";
 import Recommendation from "./recommendation.model.js";
 import { cosineSimilarity, normalizeSkills } from "./similarity.utils.js";

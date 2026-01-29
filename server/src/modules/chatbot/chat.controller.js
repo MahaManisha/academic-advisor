@@ -1,3 +1,4 @@
+// server/src/modules/chatbot/chat.controller.js
 import { handleChat } from "./chat.service.js";
 
 export const chat = async (req, res, next) => {

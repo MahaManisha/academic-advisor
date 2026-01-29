@@ -1,3 +1,4 @@
+// client/src/api/axios.js
 import axios from 'axios';
 
 // Create axios instance with base configuration

@@ -1,3 +1,4 @@
+// server/src/modules/chatbot/chat.service.js
 import Chat from "./chat.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
 import StudyPlan from "../studyPlanner/studyPlan.model.js";

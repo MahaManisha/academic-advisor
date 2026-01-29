@@ -1,3 +1,4 @@
+// server/src/modules/recommendation/recommendation.controller.js
 import { generateRecommendations } from "./recommendation.service.js";
 
 export const generate = async (req, res, next) => {

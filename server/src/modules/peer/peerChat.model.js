@@ -1,3 +1,4 @@
+// server/src/modules/peer/peerChat.model.js
 import mongoose from "mongoose";
 
 const peerChatSchema = new mongoose.Schema(

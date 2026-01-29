@@ -1,3 +1,4 @@
+// server/src/modules/user/user.routes.js
 import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
 import roleMiddleware from "../../middlewares/role.middleware.js";

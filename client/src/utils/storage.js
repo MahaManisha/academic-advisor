@@ -1,3 +1,4 @@
+// client/src/utils/storage.js
 // Token management
 export const setToken = (token) => {
   localStorage.setItem('token', token);

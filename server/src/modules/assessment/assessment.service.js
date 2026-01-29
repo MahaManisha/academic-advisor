@@ -1,3 +1,4 @@
+// server/src/modules/assessment/assessment.service.js
 import Question from "./question.model.js";
 import AssessmentAttempt from "./assessmentAttempt.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
