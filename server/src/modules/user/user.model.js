@@ -28,11 +28,49 @@ const userSchema = new mongoose.Schema(
       default: "student"
     },
 
+    course: {
+      type: String, // e.g., "Computer Science"
+      trim: true
+    },
+
+    year: {
+      type: String, // e.g., "First Year"
+      trim: true
+    },
+
+    onboardingCompleted: {
+      type: Boolean,
+      default: false
+    },
+
+    pendingAssessments: {
+      type: Number,
+      default: 1
+    },
+
     status: {
       type: String,
       enum: ["active", "suspended"],
       default: "active"
-    }
+    },
+
+    // Onboarding Profile
+    focus: { type: String }, // e.g., 'academic', 'career', 'research'
+    learningMode: { type: String }, // e.g., 'visual', 'hands-on'
+    experienceLevel: { type: Number }, // 0-100
+    knowledgeScore: { type: Number }, // Derived from experience or assessment
+    weeklyHours: { type: Number },
+    archetype: { type: String },
+    domain: { type: String },
+
+    // Dashboard Stats
+    completedAssessments: { type: Number, default: 0 },
+    studyHoursWeek: { type: Number, default: 0 },
+    studyStreak: { type: Number, default: 0 },
+    upcomingDeadlines: { type: Number, default: 0 },
+
+    // Assessment Results (Simplified storage)
+    assessmentResults: { type: Object }
   },
   { timestamps: true }
 );

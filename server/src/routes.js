@@ -10,6 +10,10 @@ import chatbotRoutes from "./modules/chatbot/chat.routes.js";
 import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import gamificationRoutes from "./modules/gamification/gamification.routes.js";
 import peerRoutes from "./modules/peer/peerChat.routes.js";
+import nlpRoutes from "./modules/nlp/nlp.routes.js";
+
+import courseRoutes from "./modules/course/course.routes.js";
+import configRoutes from "./modules/config/config.routes.js";
 
 const router = Router();
 
@@ -19,6 +23,8 @@ router.get("/health", (req, res) => {
 });
 
 // Auth & core modules
+router.use("/courses", courseRoutes);
+router.use("/config", configRoutes);
 router.use("/peer", peerRoutes);
 router.use("/gamification", gamificationRoutes)
 router.use("/analytics", analyticsRoutes);
@@ -28,6 +34,7 @@ router.use("/recommendations", recommendationRoutes);
 router.use("/assessments", assessmentRoutes);
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/nlp", nlpRoutes);
 router.use("/profile", studentProfileRoutes);
 
 export default router;

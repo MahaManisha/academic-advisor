@@ -30,32 +30,32 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const result = await login(formData);
-    
-    // ✅ SMART REDIRECT LOGIC
-    const isAdmin = result.user.role === 'admin' || result.user.email === 'admin@gmail.com';
-    
-    if (isAdmin) {
-      // ✅ Admin → Admin Dashboard (no onboarding)
-      navigate('/admin');
-    } else if (result.user.onboardingCompleted) {
-      // ✅ Existing student → Student Dashboard (skip onboarding)
-      navigate('/dashboard');
-    } else {
-      // ✅ New student → Onboarding
-      navigate('/onboarding');
+    try {
+      const result = await login(formData);
+
+      // ✅ SMART REDIRECT LOGIC
+      const isAdmin = result.user.role === 'admin';
+
+      if (isAdmin) {
+        // ✅ Admin → Admin Dashboard (no onboarding)
+        navigate('/admin/dashboard');
+      } else if (result.user.onboardingCompleted) {
+        // ✅ Existing student → Student Dashboard (skip onboarding)
+        navigate('/dashboard');
+      } else {
+        // ✅ New student → Onboarding
+        navigate('/onboarding');
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.message || 'Login failed. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleAdminChange = (e) => {
     setAdminCredentials({
@@ -63,28 +63,28 @@ const Login = () => {
       [e.target.name]: e.target.value,
     });
   };
-const handleAdminSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  const handleAdminSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const result = await login(adminCredentials);
-    
-    // ✅ Admin should ALWAYS go to admin dashboard
-    if (result.user.role === 'admin' || result.user.email === 'admin@gmail.com') {
-      navigate('/admin');
-    } else {
-      navigate('/dashboard');
+    try {
+      const result = await login(adminCredentials);
+
+      // ✅ Admin should ALWAYS go to admin dashboard
+      if (result.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+
+      setShowAdminModal(false);
+    } catch (err) {
+      setError(err.message || 'Admin login failed.');
+    } finally {
+      setLoading(false);
     }
-    
-    setShowAdminModal(false);
-  } catch (err) {
-    setError(err.message || 'Admin login failed.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const closeAdminModal = () => {
     setShowAdminModal(false);

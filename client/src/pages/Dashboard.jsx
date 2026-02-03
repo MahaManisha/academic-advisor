@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { 
-  FaChartLine, 
-  FaCalendarAlt, 
-  FaRobot, 
+import {
+  FaChartLine,
+  FaCalendarAlt,
+  FaRobot,
   FaUsers,
   FaFire,
   FaClock,
@@ -32,9 +32,9 @@ const Dashboard = () => {
   };
 
   // Check if user is new (no activity yet)
-  const isNewUser = userStats.assessmentsCompleted === 0 && 
-                    userStats.studyHoursWeek === 0 && 
-                    userStats.studyStreak === 0;
+  const isNewUser = userStats.assessmentsCompleted === 0 &&
+    userStats.studyHoursWeek === 0 &&
+    userStats.studyStreak === 0;
 
   const quickStats = [
     {
@@ -86,8 +86,8 @@ const Dashboard = () => {
       description: 'Track your academic performance and progress',
       icon: <FaChartLine />,
       color: '#667eea',
-      stats: userStats.assessmentsPending > 0 
-        ? `${userStats.assessmentsPending} pending` 
+      stats: userStats.assessmentsPending > 0
+        ? `${userStats.assessmentsPending} pending`
         : 'No assessments yet',
       path: '/assessments',
     },
@@ -97,8 +97,8 @@ const Dashboard = () => {
       description: 'Plan and organize your study schedule',
       icon: <FaCalendarAlt />,
       color: '#f093fb',
-      stats: userStats.upcomingDeadlines > 0 
-        ? `${userStats.upcomingDeadlines} upcoming deadlines` 
+      stats: userStats.upcomingDeadlines > 0
+        ? `${userStats.upcomingDeadlines} upcoming deadlines`
         : 'No tasks scheduled',
       path: '/planner',
     },
@@ -133,13 +133,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
-      <Header 
+
+      <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
         title={`Welcome back, ${user?.name?.split(' ')[0] || 'Student'}!`}
@@ -149,20 +149,30 @@ const Dashboard = () => {
 
       <main className="dashboard-main">
         <div className="main-content">
-          {/* Welcome Message for New Users */}
-          {isNewUser && (
-            <div className="welcome-banner">
-              <div className="welcome-banner-content">
-                <h2 className="welcome-banner-title">
-                  🎉 Welcome to Academic Advisor, {user?.name?.split(' ')[0]}!
-                </h2>
-                <p className="welcome-banner-text">
-                  Get started by exploring your tools below. Add assessments, create study plans, 
-                  or chat with your AI advisor to begin your academic journey!
-                </p>
+          {/* Welcome Banner */}
+          <div className="welcome-banner">
+            <div className="welcome-banner-content">
+              <h2 className="welcome-banner-title">
+                🎉 Welcome back, {user?.name?.split(' ')[0]}!
+              </h2>
+              <div className="personalization-tags" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                {user?.focus && (
+                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '14px' }}>
+                    🎯 Focus: {user.focus.charAt(0).toUpperCase() + user.focus.slice(1)}
+                  </span>
+                )}
+                {user?.learningMode && (
+                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '14px' }}>
+                    🧠 Style: {user.learningMode.charAt(0).toUpperCase() + user.learningMode.slice(1)}
+                  </span>
+                )}
               </div>
+              <p className="welcome-banner-text" style={{ marginTop: '12px' }}>
+                Your dashboard is optimized for <strong>{user?.course || 'General'}</strong>.
+                Ready to continue your {user?.focus || 'academic'} journey?
+              </p>
             </div>
-          )}
+          </div>
 
           <div className="stats-grid">
             {quickStats.map((stat) => (
@@ -206,17 +216,17 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="card-content">
-                    <div className="card-stat" style={{ 
-                      color: card.stats.includes('yet') || card.stats.includes('scheduled') ? '#6b7280' : card.color, 
-                      fontSize: '14px', 
-                      fontWeight: 600 
+                    <div className="card-stat" style={{
+                      color: card.stats.includes('yet') || card.stats.includes('scheduled') ? '#6b7280' : card.color,
+                      fontSize: '14px',
+                      fontWeight: 600
                     }}>
                       {card.stats}
                     </div>
                   </div>
                   <div className="card-footer">
-                    <button 
-                      className="card-button primary" 
+                    <button
+                      className="card-button primary"
                       style={{ background: card.color, borderColor: card.color }}
                     >
                       {card.stats.includes('yet') || card.stats.includes('scheduled') ? (

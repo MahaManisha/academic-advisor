@@ -55,7 +55,7 @@ const AdminRoute = ({ children }) => {
   }
 
   // Check if user is admin
-  const isAdmin = user?.role === 'admin' || user?.email === 'admin@gmail.com';
+  const isAdmin = user?.role === 'admin';
 
   if (!isAdmin) {
     // Redirect regular users to their dashboard

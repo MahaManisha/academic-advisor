@@ -27,60 +27,46 @@ const Courses = () => {
   };
 
   // Mock data - Replace with actual API calls
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: 'Data Structures and Algorithms',
-      instructor: 'Dr. Smith Johnson',
-      progress: 75,
-      totalLessons: 24,
-      completedLessons: 18,
-      duration: '8 weeks',
-      rating: 4.8,
-      status: 'ongoing',
-      thumbnail: null,
-      description: 'Master the fundamentals of data structures and algorithms'
-    },
-    {
-      id: 2,
-      title: 'Database Management Systems',
-      instructor: 'Prof. Emily Chen',
-      progress: 100,
-      totalLessons: 20,
-      completedLessons: 20,
-      duration: '6 weeks',
-      rating: 4.9,
-      status: 'completed',
-      thumbnail: null,
-      description: 'Comprehensive guide to database design and management'
-    },
-    {
-      id: 3,
-      title: 'Web Development Fundamentals',
-      instructor: 'John Davis',
-      progress: 45,
-      totalLessons: 30,
-      completedLessons: 14,
-      duration: '10 weeks',
-      rating: 4.7,
-      status: 'ongoing',
-      thumbnail: null,
-      description: 'Learn HTML, CSS, JavaScript and modern web development'
-    },
-    {
-      id: 4,
-      title: 'Machine Learning Basics',
-      instructor: 'Dr. Sarah Wilson',
-      progress: 20,
-      totalLessons: 28,
-      completedLessons: 6,
-      duration: '12 weeks',
-      rating: 4.9,
-      status: 'ongoing',
-      thumbnail: null,
-      description: 'Introduction to machine learning algorithms and applications'
-    }
-  ]);
+  // State
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const { getAllCourses } = await import('../api/course.api');
+        const res = await getAllCourses();
+        if (res.success) {
+          // Map backend data to UI format
+          // Backend: { name, code, difficulty, credits, category, ... }
+          // UI expects: { title, instructor, progress, ... }
+          // We will adapt the data. Instructor/Progress will be mock for now as we don't have enrollment logic distinct from course list yet.
+          const adaptedCourses = res.data.map((c, index) => ({
+            id: c._id,
+            title: c.name,
+            code: c.code,
+            instructor: `Department of ${c.category || 'Science'}`, // Placeholder
+            progress: 0, // Placeholder until enrollment is real
+            totalLessons: c.credits * 10, // Estimate
+            completedLessons: 0,
+            duration: `${c.credits * 4} weeks`,
+            rating: 4.5,
+            status: 'active', // Default to active availability
+            difficulty: c.difficulty,
+            description: c.description
+          }));
+          setCourses(adaptedCourses);
+        }
+      } catch (error) {
+        console.error("Failed to load courses", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   const filteredCourses = courses.filter(course => {
     if (filter === 'all') return true;
@@ -106,7 +92,7 @@ const Courses = () => {
         onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
+
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
@@ -208,8 +194,8 @@ const Courses = () => {
                   <p className="course-description">{course.description}</p>
 
                   <div className="course-meta">
-                    <span className="course-duration">
-                      <FaClock /> {course.duration}
+                    <span className="course-difficulty badge">
+                      {course.difficulty}
                     </span>
                     <span className="course-rating">
                       <FaStar /> {course.rating}

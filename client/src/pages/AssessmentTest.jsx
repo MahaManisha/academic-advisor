@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { getOnboardingQuestions } from '../api/assessment.api';
 import './AssessmentTest.css';
 
 const AssessmentTest = () => {
@@ -18,77 +19,42 @@ const AssessmentTest = () => {
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState(null);
 
-  // Sample questions by subject (in real app, fetch from backend)
-  const questionBank = {
-    'Programming': [
-      {
-        id: 1,
-        question: 'What is the time complexity of binary search?',
-        options: ['O(n)', 'O(log n)', 'O(n²)', 'O(1)'],
-        correct: 1,
-        difficulty: 'medium'
-      },
-      {
-        id: 2,
-        question: 'Which data structure uses LIFO principle?',
-        options: ['Queue', 'Stack', 'Array', 'Tree'],
-        correct: 1,
-        difficulty: 'easy'
-      },
-      {
-        id: 3,
-        question: 'What does OOP stand for?',
-        options: ['Object Oriented Programming', 'Object Operative Programming', 'Oriented Object Programming', 'None of the above'],
-        correct: 0,
-        difficulty: 'easy'
-      },
-    ],
-    'Data Structures': [
-      {
-        id: 4,
-        question: 'Which data structure is best for implementing recursion?',
-        options: ['Queue', 'Stack', 'Array', 'Linked List'],
-        correct: 1,
-        difficulty: 'medium'
-      },
-      {
-        id: 5,
-        question: 'What is the average case time complexity of Quick Sort?',
-        options: ['O(n)', 'O(n log n)', 'O(n²)', 'O(log n)'],
-        correct: 1,
-        difficulty: 'hard'
-      },
-    ],
-    'Database': [
-      {
-        id: 6,
-        question: 'What does SQL stand for?',
-        options: ['Structured Query Language', 'Simple Query Language', 'Standard Query Language', 'Sequential Query Language'],
-        correct: 0,
-        difficulty: 'easy'
-      },
-      {
-        id: 7,
-        question: 'Which is NOT a type of database constraint?',
-        options: ['Primary Key', 'Foreign Key', 'Unique', 'Optional'],
-        correct: 3,
-        difficulty: 'medium'
-      },
-    ],
-  };
 
-  // Generate questions for selected subjects
+
   const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch dynamic questions
   useEffect(() => {
-    const generatedQuestions = [];
-    subjects.forEach(subject => {
-      if (questionBank[subject]) {
-        generatedQuestions.push(...questionBank[subject].map(q => ({ ...q, subject })));
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const data = await getOnboardingQuestions();
+        if (data.success && data.questions.length > 0) {
+          // Normalize questions if necessary (backend returns _id, frontend might need id)
+          const formattedQuestions = data.questions.map(q => ({
+            id: q._id,
+            question: q.questionText,
+            options: q.options, // Assuming options are stored as array of strings
+            difficulty: q.difficulty === 1 ? 'easy' : q.difficulty === 2 ? 'medium' : 'hard',
+            subject: q.domain,
+            correct: parseInt(q.correctAnswer) // Ensure index is number
+          }));
+          setQuestions(formattedQuestions);
+        } else {
+          setError("No questions found for your course.");
+        }
+      } catch (err) {
+        console.error("Failed to load questions:", err);
+        setError("Failed to load assessment. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    });
-    setQuestions(generatedQuestions);
-  }, [subjects]);
+    };
+
+    fetchQuestions();
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -129,10 +95,10 @@ const AssessmentTest = () => {
 
     questions.forEach(question => {
       const isCorrect = answers[question.id] === question.correct;
-      
+
       if (isCorrect) {
         totalScore++;
-        
+
         // Subject-wise score
         if (!subjectScores[question.subject]) {
           subjectScores[question.subject] = { correct: 0, total: 0 };
@@ -153,7 +119,7 @@ const AssessmentTest = () => {
     });
 
     const percentageScore = ((totalScore / questions.length) * 100).toFixed(1);
-    
+
     // Determine proficiency level
     let proficiencyLevel = 'Beginner';
     if (percentageScore >= 80) proficiencyLevel = 'Expert';
@@ -203,6 +169,32 @@ const AssessmentTest = () => {
     navigate('/dashboard');
   };
 
+  if (loading) {
+    return (
+      <div className="assessment-container">
+        <div className="assessment-card loading-card">
+          <div className="loading-spinner"></div>
+          <h2>Preparing your assessment...</h2>
+          <p>Generating questions based on your course.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="assessment-container">
+        <div className="assessment-card error-card">
+          <h2>Assessment Error</h2>
+          <p>{error}</p>
+          <button onClick={() => navigate('/dashboard')} className="btn-secondary">
+            Skip for now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (questions.length === 0) {
     return (
       <div className="assessment-container">
@@ -249,9 +241,9 @@ const AssessmentTest = () => {
                     <span className="subject-score">{data.correct}/{data.total}</span>
                   </div>
                   <div className="subject-progress">
-                    <div 
-                      className="subject-progress-fill" 
-                      style={{ 
+                    <div
+                      className="subject-progress-fill"
+                      style={{
                         width: `${percentage}%`,
                         background: percentage >= 70 ? '#10b981' : percentage >= 50 ? '#f59e0b' : '#ef4444'
                       }}
@@ -313,8 +305,8 @@ const AssessmentTest = () => {
             Question {currentQuestion + 1} of {questions.length}
           </div>
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
             />
           </div>
@@ -338,8 +330,8 @@ const AssessmentTest = () => {
         </div>
 
         <div className="assessment-actions">
-          <button 
-            className="btn-secondary" 
+          <button
+            className="btn-secondary"
             onClick={handlePrevious}
             disabled={currentQuestion === 0}
           >

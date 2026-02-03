@@ -2,6 +2,7 @@
 import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
 import roleMiddleware from "../../middlewares/role.middleware.js";
+import { getAllUsers, getUserStats, updateUserStatus, getStudentProfile } from "./user.controller.js";
 
 const router = Router();
 
@@ -13,7 +14,24 @@ router.get("/me", authMiddleware, (req, res) => {
   });
 });
 
-// Only admins
+
+// Admin routes
+router.get("/", authMiddleware, roleMiddleware("admin"), getAllUsers);
+router.get("/stats", authMiddleware, roleMiddleware("admin"), getUserStats);
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware("admin"),
+  updateUserStatus
+);
+router.get(
+  "/:id/profile",
+  authMiddleware,
+  roleMiddleware("admin"),
+  getStudentProfile
+);
+
+// Only admins welcome message (keep for legacy check)
 router.get(
   "/admin-only",
   authMiddleware,

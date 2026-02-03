@@ -3,10 +3,16 @@ import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
 import {
   generate,
-  getAnalytics
+  getAnalytics,
+  getDashboardAnalytics
 } from "./analytics.controller.js";
 
+import roleMiddleware from "../../middlewares/role.middleware.js";
+
 const router = Router();
+
+// Admin Dashboard - Protected
+router.get("/dashboard", authMiddleware, roleMiddleware(['admin']), getDashboardAnalytics);
 
 router.post("/:domain/generate", authMiddleware, generate);
 router.get("/", authMiddleware, getAnalytics);

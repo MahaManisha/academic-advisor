@@ -15,7 +15,7 @@ export const register = async (data) => {
 
 // Get current authenticated user
 export const getMe = async () => {
-  const response = await axios.get('/auth/me');
+  const response = await axios.get('/users/me');
   return response.data;
 };
 

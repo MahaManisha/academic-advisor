@@ -13,6 +13,7 @@ import {
   FaChartLine
 } from 'react-icons/fa';
 import './AdvisorChat.css';
+import { sendMessage } from '../api/chat.api';
 
 const AdvisorChat = () => {
   const { user, logout } = useAuth();
@@ -63,6 +64,8 @@ const AdvisorChat = () => {
     }
   ];
 
+
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -73,39 +76,31 @@ const AdvisorChat = () => {
       timestamp: new Date()
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setMessage('');
 
-    // Simulate AI response (Replace with actual API call)
-    setTimeout(() => {
+    try {
+      // Call real backend API
+      const data = await sendMessage(message);
+
       const botResponse = {
         id: Date.now() + 1,
         type: 'bot',
-        content: generateResponse(message),
-        timestamp: new Date()
+        content: data.response,
+        timestamp: new Date(),
+        confidence: data.confidence // Optional: show confidence
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
-  };
-
-  const generateResponse = (query) => {
-    // Mock AI response - Replace with actual AI integration
-    const responses = {
-      'study': 'Here are some effective study techniques:\n\n1. **Active Recall**: Test yourself regularly\n2. **Spaced Repetition**: Review material over time\n3. **Pomodoro Technique**: Study in 25-minute intervals\n4. **Mind Mapping**: Visualize concepts\n\nWould you like specific tips for any subject?',
-      'data': 'For Data Structures, I recommend:\n\n📚 **Resources:**\n- "Introduction to Algorithms" by CLRS\n- LeetCode for practice problems\n- GeeksforGeeks tutorials\n\n💡 **Focus Areas:**\n- Arrays and Linked Lists\n- Trees and Graphs\n- Sorting algorithms\n\nWould you like a personalized study plan?',
-      'performance': 'Based on your recent assessments:\n\n✅ **Strengths:**\n- Programming fundamentals (85% avg)\n- Database concepts (82% avg)\n\n📈 **Areas to improve:**\n- Algorithm optimization\n- Complex data structures\n\nI can create a targeted improvement plan. Interested?',
-      'default': 'I understand you have a question. Could you provide more details so I can give you the best guidance? You can ask me about:\n\n- Study strategies\n- Subject resources\n- Performance analysis\n- Career advice\n- Academic planning'
-    };
-
-    const lowercaseQuery = query.toLowerCase();
-    if (lowercaseQuery.includes('study') || lowercaseQuery.includes('habit')) {
-      return responses.study;
-    } else if (lowercaseQuery.includes('data') || lowercaseQuery.includes('resource')) {
-      return responses.data;
-    } else if (lowercaseQuery.includes('performance') || lowercaseQuery.includes('analyze')) {
-      return responses.performance;
+    } catch (error) {
+      console.error("Chat failed:", error);
+      const errorResponse = {
+        id: Date.now() + 1,
+        type: 'bot',
+        content: "I'm having trouble connecting to the server. Please try again later.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
     }
-    return responses.default;
   };
 
   const handleQuickQuestion = (question) => {
@@ -126,12 +121,16 @@ const AdvisorChat = () => {
         onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
+
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
         title="AI Academic Advisor"
-        subtitle="Get personalized academic guidance"
+        subtitle={
+          user?.focus
+            ? `Personalized for ${user.course} (${user.learningMode} Learner)`
+            : "Get personalized academic guidance"
+        }
         showSearch={false}
       />
 
@@ -180,9 +179,9 @@ const AdvisorChat = () => {
                         {msg.type === 'bot' ? 'AI Advisor' : user?.name || 'You'}
                       </span>
                       <span className="message-time">
-                        {msg.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                        {msg.timestamp.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })}
                       </span>
                     </div>

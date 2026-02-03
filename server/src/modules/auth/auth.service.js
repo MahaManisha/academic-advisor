@@ -17,7 +17,9 @@ export const registerUser = async (data) => {
     fullName: data.fullName,
     email: data.email,
     passwordHash,
-    role: data.role || "student"
+    role: data.role || "student",
+    course: data.course,
+    year: data.year
   });
 
   return user;
@@ -43,6 +45,6 @@ export const loginUser = async (data) => {
   // FIXED: Return complete user object without password hash for security
   const userResponse = user.toObject ? user.toObject() : user;
   delete userResponse.passwordHash; // Never send password hash to client
-  
+
   return { token, user: userResponse };
 };

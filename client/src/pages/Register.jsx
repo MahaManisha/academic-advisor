@@ -10,7 +10,7 @@ const Register = () => {
   const { register } = useAuth();
 
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -29,35 +29,35 @@ const Register = () => {
     if (error) setError('');
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  // Validation
-  if (formData.password !== formData.confirmPassword) {
-    setError('Passwords do not match');
-    return;
-  }
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
-  if (formData.password.length < 6) {
-    setError('Password must be at least 6 characters');
-    return;
-  }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const { confirmPassword, ...userData } = formData;
-    await register(userData);
-    
-    // ✅ NEW: New users always go to onboarding
-    navigate('/onboarding');
-  } catch (err) {
-    setError(err.message || 'Registration failed. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const { confirmPassword, ...userData } = formData;
+      await register(userData);
+
+      // ✅ NEW: New users always go to onboarding
+      navigate('/onboarding');
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="register-container">
@@ -72,9 +72,9 @@ const Register = () => {
             <FaUser className="input-icon" />
             <input
               type="text"
-              name="name"
+              name="fullName"
               placeholder="Full Name"
-              value={formData.name}
+              value={formData.fullName}
               onChange={handleChange}
               required
               disabled={loading}

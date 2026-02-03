@@ -54,21 +54,29 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ CRITICAL: Prevent admin from accessing student routes
-  const isAdmin = user?.role === 'admin' || user?.email === 'admin@gmail.com';
-  
-  if (isAdmin) {
+  // ✅ CRITICAL: Prevent admin from accessing student routes (except allowed shared views)
+  const isAdmin = user?.role === 'admin';
+  // Admin can access: Admin Dashboard, Student Dashboard (View Mode), and Settings
+  const adminAllowedPaths = ['/dashboard', '/settings'];
+
+  if (isAdmin && !adminAllowedPaths.includes(location.pathname)) {
     // ✅ Admin should NEVER see student routes or onboarding
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   // ✅ For STUDENTS: Check onboarding status
-  // Allow access to onboarding and assessment-test pages
-  const allowedPathsWithoutOnboarding = ['/onboarding', '/assessment-test'];
-  
-  if (!user?.onboardingCompleted && !allowedPathsWithoutOnboarding.includes(location.pathname)) {
-    // ✅ Redirect incomplete students to onboarding
+  const isOnboarded = user?.onboardingCompleted;
+  const onboardingPaths = ['/onboarding', '/assessment-test'];
+  const isTryingToAccessOnboarding = onboardingPaths.includes(location.pathname);
+
+  // Case 1: Student NOT onboarded -> Must go to onboarding
+  if (!isOnboarded && !isTryingToAccessOnboarding) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Case 2: Student ALREADY onboarded -> Must NOT go to onboarding
+  if (isOnboarded && isTryingToAccessOnboarding) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   // ✅ All checks passed: render the component

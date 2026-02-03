@@ -1,5 +1,4 @@
-// client/src/pages/PeerChat.jsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -8,10 +7,11 @@ import {
   FaUsers,
   FaSearch,
   FaPaperPlane,
-  FaUserCircle,
   FaCircle
 } from 'react-icons/fa';
 import './PeerChat.css';
+import socketService from '../services/socket.service';
+import { getPeerSuggestions, getChatHistory } from '../api/peer.api';
 
 const PeerChat = () => {
   const { user, logout } = useAuth();
@@ -21,90 +21,102 @@ const PeerChat = () => {
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [peers, setPeers] = useState([]);
+  const [chatHistory, setChatHistory] = useState([]); // Array of {sender, message, createdAt}
+  const messagesEndRef = useRef(null);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // Mock data - Replace with actual API calls
-  const [peers, setPeers] = useState([
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      course: 'Computer Science',
-      year: 'Third Year',
-      status: 'online',
-      lastMessage: 'Hey, did you understand the recursion topic?',
-      unread: 2,
-      avatar: null
-    },
-    {
-      id: 2,
-      name: 'Mike Chen',
-      course: 'Information Technology',
-      year: 'Second Year',
-      status: 'offline',
-      lastMessage: 'Thanks for the help!',
-      unread: 0,
-      avatar: null
-    },
-    {
-      id: 3,
-      name: 'Emily Davis',
-      course: 'Computer Science',
-      year: 'Third Year',
-      status: 'online',
-      lastMessage: 'Can you share your notes?',
-      unread: 1,
-      avatar: null
+  // Convert name to initials
+  const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+
+  // 1. Initialize Socket & Fetch Peers
+  useEffect(() => {
+    // Connect socket
+    socketService.connect(localStorage.getItem('token'));
+
+    // Listen for incoming messages
+    socketService.onMessageReceived((updatedChat) => {
+      // If the updated chat matches our current room, update UI
+      if (selectedPeer) {
+        const currentRoomId = [user._id, selectedPeer._id].sort().join('_');
+        if (updatedChat.roomId === currentRoomId) {
+          setChatHistory(updatedChat.messages);
+        }
+      }
+    });
+
+    // Fetch suggested peers (initially generic)
+    const fetchPeers = async () => {
+      const data = await getPeerSuggestions(); // Add params if needed
+      if (data.success) {
+        // Transform to UI format if needed
+        const formatted = data.peers.map(p => ({
+          _id: p.userId._id, // Ensure we use _id for unique keys
+          name: p.userId.name,
+          course: p.userId.course || 'Student',
+          status: 'online', // Mock status for now
+          avatar: null
+        }));
+        setPeers(formatted);
+      }
+    };
+
+    fetchPeers();
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [user]);
+
+  // 2. Handle Peer Selection -> Join Room & Fetch History
+  useEffect(() => {
+    if (selectedPeer && user) {
+      const roomId = [user._id, selectedPeer._id].sort().join('_');
+
+      // Join Socket Room
+      socketService.joinRoom(roomId);
+
+      // Fetch History
+      const loadHistory = async () => {
+        const data = await getChatHistory(roomId);
+        if (data.success && data.chat) {
+          setChatHistory(data.chat.messages);
+        } else {
+          setChatHistory([]);
+        }
+      };
+      loadHistory();
     }
-  ]);
+  }, [selectedPeer, user]);
 
-  const [chatMessages, setChatMessages] = useState({
-    1: [
-      { id: 1, sender: 'peer', text: 'Hey, did you understand the recursion topic?', time: '10:30 AM' },
-      { id: 2, sender: 'me', text: 'Yes! It took me a while but I got it. Need help?', time: '10:32 AM' },
-      { id: 3, sender: 'peer', text: 'Yes please! Can you explain the base case?', time: '10:33 AM' }
-    ],
-    2: [
-      { id: 1, sender: 'me', text: 'Hey Mike, how\'s your project going?', time: 'Yesterday' },
-      { id: 2, sender: 'peer', text: 'Going well! Thanks for the help!', time: 'Yesterday' }
-    ],
-    3: [
-      { id: 1, sender: 'peer', text: 'Can you share your notes?', time: '9:15 AM' }
-    ]
-  });
+  // 3. Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
-  };
 
   const handleSendMessage = () => {
     if (!message.trim() || !selectedPeer) return;
 
-    const newMessage = {
-      id: Date.now(),
-      sender: 'me',
-      text: message,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const roomId = [user._id, selectedPeer._id].sort().join('_');
 
-    setChatMessages({
-      ...chatMessages,
-      [selectedPeer.id]: [...(chatMessages[selectedPeer.id] || []), newMessage]
+    // Emit to server
+    socketService.sendMessage({
+      roomId,
+      sender: user._id,
+      message: message
     });
 
     setMessage('');
   };
 
-  const filteredPeers = peers.filter(peer =>
-    peer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    peer.course.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPeers = peers.length > 0 ? peers.filter(peer =>
+    peer.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
 
   return (
     <div className="dashboard-container">
@@ -113,7 +125,7 @@ const PeerChat = () => {
         onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
+
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
@@ -128,7 +140,7 @@ const PeerChat = () => {
             {/* Peers List */}
             <div className="peers-sidebar">
               <div className="peers-header">
-                <h3>Messages</h3>
+                <h3>Collaborators</h3>
                 <div className="peers-search">
                   <FaSearch className="search-icon" />
                   <input
@@ -141,31 +153,24 @@ const PeerChat = () => {
               </div>
 
               <div className="peers-list">
-                {filteredPeers.map((peer) => (
+                {filteredPeers.length > 0 ? filteredPeers.map((peer) => (
                   <div
-                    key={peer.id}
-                    className={`peer-item ${selectedPeer?.id === peer.id ? 'active' : ''}`}
+                    key={peer._id}
+                    className={`peer-item ${selectedPeer?._id === peer._id ? 'active' : ''}`}
                     onClick={() => setSelectedPeer(peer)}
                   >
                     <div className="peer-avatar">
-                      {peer.avatar ? (
-                        <img src={peer.avatar} alt={peer.name} />
-                      ) : (
-                        getInitials(peer.name)
-                      )}
-                      <FaCircle
-                        className={`status-indicator ${peer.status}`}
-                      />
+                      {getInitials(peer.name)}
+                      <FaCircle className={`status-indicator ${peer.status}`} />
                     </div>
                     <div className="peer-info">
                       <div className="peer-name">{peer.name}</div>
-                      <div className="peer-last-message">{peer.lastMessage}</div>
+                      <div className="peer-last-message">{peer.course}</div>
                     </div>
-                    {peer.unread > 0 && (
-                      <div className="unread-badge">{peer.unread}</div>
-                    )}
                   </div>
-                ))}
+                )) : (
+                  <div className="no-peers">No peers found. Try completing more assessments!</div>
+                )}
               </div>
             </div>
 
@@ -176,31 +181,33 @@ const PeerChat = () => {
                   <div className="chat-header">
                     <div className="chat-peer-info">
                       <div className="chat-peer-avatar">
-                        {selectedPeer.avatar ? (
-                          <img src={selectedPeer.avatar} alt={selectedPeer.name} />
-                        ) : (
-                          getInitials(selectedPeer.name)
-                        )}
+                        {getInitials(selectedPeer.name)}
                       </div>
                       <div>
                         <div className="chat-peer-name">{selectedPeer.name}</div>
                         <div className="chat-peer-status">
                           <FaCircle className={`status-dot ${selectedPeer.status}`} />
-                          {selectedPeer.status === 'online' ? 'Active now' : 'Offline'}
+                          Active now
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="chat-messages">
-                    {(chatMessages[selectedPeer.id] || []).map((msg) => (
-                      <div key={msg.id} className={`chat-message ${msg.sender}`}>
-                        <div className="message-bubble">
-                          <div className="message-text">{msg.text}</div>
-                          <div className="message-time">{msg.time}</div>
+                    {chatHistory.map((msg, idx) => {
+                      const isMe = msg.sender === user?._id;
+                      return (
+                        <div key={idx} className={`chat-message ${isMe ? 'me' : 'peer'}`}>
+                          <div className="message-bubble">
+                            <div className="message-text">{msg.message}</div>
+                            <div className="message-time">
+                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   <div className="chat-input-area">
@@ -224,7 +231,7 @@ const PeerChat = () => {
                 <div className="no-chat-selected">
                   <FaUsers className="no-chat-icon" />
                   <h3>Select a peer to start chatting</h3>
-                  <p>Choose from your connections on the left</p>
+                  <p>Choose from your suggestions on the left</p>
                 </div>
               )}
             </div>

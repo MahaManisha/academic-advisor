@@ -18,7 +18,7 @@ import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
   // Check if user is admin
-  const isAdmin = user?.role === 'admin' || user?.email === 'admin@gmail.com';
+  const isAdmin = user?.role === 'admin';
 
   // Get actual badge counts from user data
   const pendingAssessments = user?.pendingAssessments || 0;
@@ -42,9 +42,11 @@ const Sidebar = ({ isOpen, onClose, user }) => {
 
   // Admin navigation links
   const adminNavigationLinks = [
-    { path: '/admin', icon: <FaTachometerAlt />, label: 'Admin Dashboard' },
-    { path: '/dashboard', icon: <FaHome />, label: 'Student View' },
-    { path: '/settings', icon: <FaCog />, label: 'Settings' },
+    { path: '/admin/dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
+    { path: '/admin/student-view', icon: <FaGraduationCap />, label: 'Students' },
+    { path: '/admin/courses', icon: <FaBook />, label: 'Courses' },
+    { path: '/admin/onboarding', icon: <FaClipboardList />, label: 'Onboarding' },
+    { path: '/admin/settings', icon: <FaCog />, label: 'Settings' },
   ];
 
   // Choose navigation based on user role

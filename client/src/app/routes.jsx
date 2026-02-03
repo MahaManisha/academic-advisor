@@ -15,6 +15,7 @@ import AssessmentTest from '../pages/AssessmentTest';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import AdminDashboard from '../pages/AdminDashboard';
+import AdminUsers from '../pages/AdminUsers';
 
 // Feature Pages
 import Assessments from '../pages/Assessments';
@@ -23,6 +24,10 @@ import AdvisorChat from '../pages/AdvisorChat';
 import PeerChat from '../pages/PeerChat';
 import Courses from '../pages/Courses';
 import Settings from '../pages/Settings';
+import AdminSettings from '../pages/AdminSettings';
+import AdminStudentView from '../pages/AdminStudentView';
+import AdminCourses from '../pages/AdminCourses';
+import AdminOnboarding from '../pages/AdminOnboarding';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -79,13 +84,55 @@ const AppRoutes = () => {
 
         {/* Admin Dashboard Route */}
         <Route
-          path="/admin"
+          path="/admin/dashboard"
           element={
             <AdminRoute>
               <AdminDashboard />
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/student-view"
+          element={
+            <AdminRoute>
+              <AdminStudentView />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <AdminRoute>
+              <AdminCourses />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/onboarding"
+          element={
+            <AdminRoute>
+              <AdminOnboarding />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <AdminRoute>
+              <AdminSettings />
+            </AdminRoute>
+          }
+        />
+        {/* Redirect /admin to /admin/dashboard */}
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* Feature Routes */}
         <Route
