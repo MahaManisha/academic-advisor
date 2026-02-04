@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import PublicRoute from './PublicRoute';
 import AdminRoute from './AdminRoute';
 
 // Public Pages
 import Home from '../pages/Home';  // ✅ NEW
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+import VerifyEmail from '../pages/VerifyEmail';
 
 // Onboarding & Assessment
 import Onboarding from '../pages/Onboarding';
@@ -39,9 +41,33 @@ const AppRoutes = () => {
         {/* ✅ NEW: Root redirects to home page */}
         <Route path="/" element={<Home />} />
 
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Public Routes - Auto-redirect if logged in */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+
+        {/* Verify Email Route */}
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmail />
+            </PublicRoute>
+          }
+        />
 
         {/* Onboarding Route (Protected but accessible to new users) */}
         <Route

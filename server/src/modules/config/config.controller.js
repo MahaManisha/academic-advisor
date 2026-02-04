@@ -40,3 +40,29 @@ export const updateOnboardingConfig = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+export const getSystemConfig = async (req, res) => {
+    try {
+        // specific 'system' key for global settings
+        let config = await SystemConfig.findOne({ key: 'system' });
+        if (!config) {
+            config = await SystemConfig.create({ key: 'system', value: {} });
+        }
+        res.json({ success: true, data: config.value });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+export const updateSystemConfig = async (req, res) => {
+    try {
+        const config = await SystemConfig.findOneAndUpdate(
+            { key: 'system' },
+            { value: req.body },
+            { new: true, upsert: true }
+        );
+        res.json({ success: true, data: config.value });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

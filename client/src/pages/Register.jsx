@@ -1,4 +1,3 @@
-// client/src/pages/Register.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaGraduationCap, FaCalendarAlt } from 'react-icons/fa';
@@ -25,7 +24,6 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -50,8 +48,8 @@ const Register = () => {
       const { confirmPassword, ...userData } = formData;
       await register(userData);
 
-      // ✅ NEW: New users always go to onboarding
-      navigate('/onboarding');
+      // STRICT REQUIREMENT: Redirect to Verify Email page
+      navigate('/verify-email', { state: { email: formData.email } });
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -158,7 +156,7 @@ const Register = () => {
           </div>
 
           <button type="submit" className="register-button" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? 'Creating Account (Sending OTP)...' : 'Sign Up'}
           </button>
         </form>
 

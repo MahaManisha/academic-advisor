@@ -22,6 +22,21 @@ const userSchema = new mongoose.Schema(
       required: true
     },
 
+    emailVerified: {
+      type: Boolean,
+      default: false
+    },
+
+    profileCompleted: {
+      type: Boolean,
+      default: false
+    },
+
+    analyticsGenerated: {
+      type: Boolean,
+      default: false
+    },
+
     role: {
       type: String,
       enum: ["student", "admin", "trainer"],

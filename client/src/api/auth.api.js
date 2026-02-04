@@ -28,3 +28,21 @@ export const adminLogin = async () => {
   const response = await axios.post('/auth/login', adminCredentials);
   return response.data;
 };
+
+// Verify OTP
+export const verifyEmail = async (data) => {
+  const response = await axios.post('/auth/verify-email', data);
+  return response.data;
+};
+
+// Resend OTP
+export const resendOtp = async (email) => {
+  const response = await axios.post('/auth/resend-otp', { email });
+  return response.data;
+};
+
+// Complete Onboarding
+export const completeOnboarding = async (data) => {
+  const response = await axios.post('/users/onboarding', data);
+  return response.data;
+};

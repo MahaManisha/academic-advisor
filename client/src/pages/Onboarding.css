@@ -82,33 +82,37 @@
 
 /* Card Selections (Step 1) */
 .card-grid {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
 }
 
 .selection-card {
-  flex: 1;
   background: white;
   border: 2px solid #e2e8f0;
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .selection-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
   border-color: #94a3b8;
 }
 
 .selection-card.active {
   border-color: #6366f1;
-  background: #eef2ff;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  background: #f5f7ff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  transform: translateY(-4px);
 }
 
 .card-icon {

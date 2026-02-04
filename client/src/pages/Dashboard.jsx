@@ -174,30 +174,41 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="stats-grid">
-            {quickStats.map((stat) => (
-              <div key={stat.id} className="stat-card">
-                <div className="stat-header">
-                  <div className="stat-icon" style={{ background: stat.color }}>
-                    {stat.icon}
-                  </div>
-                  {stat.trend && (
-                    <div className={`stat-trend ${stat.trendPositive ? 'positive' : 'negative'}`}>
-                      <FaArrowUp />
-                      {stat.trend}
+          {/* Stats Grid - ONLY show if user has activity */}
+          {!isNewUser ? (
+            <div className="stats-grid">
+              {quickStats.map((stat) => (
+                <div key={stat.id} className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon" style={{ background: stat.color }}>
+                      {stat.icon}
                     </div>
-                  )}
+                    {stat.trend && (
+                      <div className={`stat-trend ${stat.trendPositive ? 'positive' : 'negative'}`}>
+                        <FaArrowUp />
+                        {stat.trend}
+                      </div>
+                    )}
+                  </div>
+                  <div className="stat-label">{stat.label}</div>
+                  <div className="stat-value">
+                    {stat.value}
+                    <span style={{ fontSize: '16px', fontWeight: 500, marginLeft: '4px', color: '#6b7280' }}>
+                      {stat.unit}
+                    </span>
+                  </div>
                 </div>
-                <div className="stat-label">{stat.label}</div>
-                <div className="stat-value">
-                  {stat.value}
-                  <span style={{ fontSize: '16px', fontWeight: 500, marginLeft: '4px', color: '#6b7280' }}>
-                    {stat.unit}
-                  </span>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="new-user-banner">
+              <div className="banner-icon"><FaFire style={{ color: '#f59e0b' }} /></div>
+              <div>
+                <h3>Start Your Streak Today!</h3>
+                <p>Complete your first lesson or assessment to see your stats here.</p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
           <div className="content-section">
             <div className="section-header">

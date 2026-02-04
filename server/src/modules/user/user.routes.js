@@ -2,17 +2,20 @@
 import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
 import roleMiddleware from "../../middlewares/role.middleware.js";
-import { getAllUsers, getUserStats, updateUserStatus, getStudentProfile } from "./user.controller.js";
+import {
+  getAllUsers,
+  getUserStats,
+  updateUserStatus,
+  getStudentProfile,
+  getCurrentUser,
+  completeOnboarding
+} from "./user.controller.js";
 
 const router = Router();
 
 // Only logged-in users
-router.get("/me", authMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    user: req.user
-  });
-});
+router.get("/me", authMiddleware, getCurrentUser);
+router.post("/onboarding", authMiddleware, completeOnboarding);
 
 
 // Admin routes

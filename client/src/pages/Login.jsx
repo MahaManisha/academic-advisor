@@ -51,7 +51,16 @@ const Login = () => {
         navigate('/onboarding');
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      if (err.message && err.message.includes('verify')) {
+        setError(
+          <span>
+            {err.message} <br />
+            <small>Please check your inbox or spam folder.</small>
+          </span>
+        );
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

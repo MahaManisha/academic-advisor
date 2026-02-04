@@ -33,6 +33,10 @@ const studentProfileSchema = new mongoose.Schema(
 
     careerGoals: [String],
 
+    // New Fields for Onboarding
+    focusArea: { type: String }, // e.g., 'academic', 'career', 'research'
+    learningMode: { type: String }, // e.g., 'visual', 'hands-on'
+
     skills: [skillSchema],
 
     learningSpeed: {

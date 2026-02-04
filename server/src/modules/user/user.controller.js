@@ -1,4 +1,5 @@
 import User from "./user.model.js";
+import StudentProfile from "../studentProfile/studentProfile.model.js";
 
 // Get all users (Admin only)
 export const getAllUsers = async (req, res) => {
@@ -122,8 +123,10 @@ export const getStudentProfile = async (req, res) => {
                 student: user,
                 assessments: user.assessmentResults || [],
                 performance: {
-                    attendance: 85,
-                    assignments: 12
+                    completed: user.completedAssessments || 0,
+                    streak: user.studyStreak || 0,
+                    hours: user.studyHoursWeek || 0,
+                    gpa: user.gpa || 0
                 }
             }
         });
@@ -133,5 +136,63 @@ export const getStudentProfile = async (req, res) => {
             message: "Server Error",
             error: error.message
         });
+    }
+};
+// Complete Onboarding
+export const completeOnboarding = async (req, res) => {
+    try {
+        const { focus, learningMode, experienceLevel, course, year } = req.body;
+        const userId = req.user.id;
+
+        // 1. Create or Update Student Profile
+        const profileFields = {
+            userId,
+            focusArea: focus,
+            learningMode,
+            academicLevel: year || 'UG', // fallback
+            skills: [] // Initialize empty skills, will be populated by assessment
+        };
+
+        let profile = await StudentProfile.findOne({ userId });
+        if (profile) {
+            profile = await StudentProfile.findOneAndUpdate(
+                { userId },
+                { $set: profileFields },
+                { new: true }
+            );
+        } else {
+            profile = new StudentProfile(profileFields);
+            await profile.save();
+        }
+
+        // 2. Update User Status
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                profileCompleted: true,
+                onboardingCompleted: true, // Legacy flag, keep for safe compatibility 
+                focus: focus, // Store redundant for quick access if needed
+                learningMode: learningMode
+            },
+            { new: true }
+        ).select("-passwordHash");
+
+        res.json({ success: true, user, profile });
+    } catch (error) {
+        console.error("Onboarding Error:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
+// Get current logged in user (Full Profile)
+export const getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("-passwordHash");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        res.json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 };
