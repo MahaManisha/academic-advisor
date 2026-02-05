@@ -1,15 +1,24 @@
 // server/src/modules/auth/auth.controller.js
-import { registerUser, loginUser, verifyEmail, resendOtp } from "./auth.service.js";
+import { registerUser, loginUser, verifyEmail, resendOtp, completeRegistration } from "./auth.service.js";
 
 export const register = async (req, res, next) => {
   try {
-    const user = await registerUser(req.body);
+    const response = await registerUser(req.body);
     // Explicitly return success and email to facilitate OTP flow on frontend
     res.status(201).json({
       success: true,
-      user: { email: user.email },
-      message: "Registration successful. Please check your email for OTP."
+      email: response.email,
+      message: "Registration initiated. Please check your email for OTP."
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const complete = async (req, res, next) => {
+  try {
+    const result = await completeRegistration(req.body);
+    res.status(201).json({ success: true, ...result });
   } catch (err) {
     next(err);
   }

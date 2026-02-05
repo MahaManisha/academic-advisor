@@ -63,23 +63,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register method
+  // Register (Step 1) - Initiate
   const register = async (userData) => {
     try {
       const data = await registerAPI(userData);
-
-      // Store token and user
-      setToken(data.token);
-      setUser(data.user);
-
-      // Update state
-      setUserState(data.user);
-      setIsAuthenticated(true);
-
+      // No token set here yet
       return data;
     } catch (error) {
       console.error('Registration error:', error);
       throw new Error(error.response?.data?.message || 'Registration failed. Please try again.');
+    }
+  };
+
+  // Complete Registration (Step 4) - Finalize & Auto-login
+  const completeSignup = async (userData) => {
+    try {
+      const data = await import('../api/auth.api').then(module => module.completeRegistration(userData));
+
+      if (data.token) {
+        setToken(data.token);
+        setUser(data.user);
+        setUserState(data.user);
+        setIsAuthenticated(true);
+      }
+      return data;
+    } catch (error) {
+      console.error('Completion error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to complete registration.');
     }
   };
 
@@ -104,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    completeSignup,
   };
 
   return (

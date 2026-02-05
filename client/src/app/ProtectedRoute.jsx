@@ -64,6 +64,13 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  // ✅ CRITICAL: Enforce Email Verification
+  if (!user?.emailVerified) {
+    // User is logged in but not verified. 
+    // Redirect to verify-email page with their email.
+    return <Navigate to="/verify-email" state={{ email: user.email }} replace />;
+  }
+
   // ✅ For STUDENTS: Check onboarding status
   const isOnboarded = user?.onboardingCompleted;
   const onboardingPaths = ['/onboarding', '/assessment-test'];

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyEmail, resendOtp } from '../api/auth.api';
+import ProgressSteps from '../components/common/ProgressSteps';
 
 const VerifyEmail = () => {
     const { state } = useLocation();
@@ -35,12 +36,17 @@ const VerifyEmail = () => {
 
         try {
             const result = await verifyEmail({ email, otp });
-            // On success, store token if returned and redirect to Onboarding/Intake
-            if (result.token) {
-                localStorage.setItem('token', result.token);
+
+            // On success, backend now returns a registrationToken, NOT a login token
+            if (result.registrationToken) {
+                // Store registration token temporarily
+                sessionStorage.setItem('registrationToken', result.registrationToken);
+                // Redirect to Academic Status Selection
+                navigate('/academic-status');
+            } else {
+                // Fallback / legacy support if needed
+                window.location.href = '/login';
             }
-            // Redirect to Academic Intake (Onboarding)
-            window.location.href = '/onboarding';
 
         } catch (err) {
             setError(err.response?.data?.message || 'Verification failed. Invalid OTP.');
@@ -63,9 +69,11 @@ const VerifyEmail = () => {
     return (
         <div style={styles.container}>
             <div style={styles.card}>
-                <h2 style={styles.title}>Verify Your Email</h2>
+                <ProgressSteps currentStep={2} />
+
+                <h2 style={styles.title}>Check Your Inbox 📩</h2>
                 <p style={styles.subtitle}>
-                    Please enter the 6-digit code sent to <br />
+                    We've sent a 6-digit magic code to <br />
                     <strong>{email}</strong>
                 </p>
 

@@ -43,15 +43,35 @@ const userSchema = new mongoose.Schema(
       default: "student"
     },
 
-    course: {
-      type: String, // e.g., "Computer Science"
-      trim: true
+    // Academic Identity
+    academicStatus: {
+      type: String,
+      enum: ["school", "college", "graduated"],
+      default: "college"
     },
 
-    year: {
-      type: String, // e.g., "First Year"
-      trim: true
-    },
+    // 1. School Student Fields
+    schoolName: { type: String, trim: true },
+    educationBoard: { type: String, enum: ["State Board", "CBSE", "ICSE", "Other"] },
+    standard: { type: String, enum: ["6th", "7th", "8th", "9th", "10th", "11th", "12th"] },
+    medium: { type: String, default: "English" },
+
+    // 2. College Student Fields
+    college: { type: String, trim: true },
+    degreeType: { type: String, enum: ["Diploma", "UG", "PG", "PhD"] },
+    domain: { type: String, trim: true }, // Course/Major
+    year: { type: Number, min: 1, max: 5 },
+    areaOfInterest: [{ type: String }], // Multi-select
+
+    // 3. Graduated User Fields
+    qualification: { type: String }, // Highest Qualification
+    fieldOfStudy: { type: String },
+    skills: [{ type: String }], // Multi-select
+    careerInterest: { type: String }, // Goal
+
+    // Backward compatibility aliases
+    course: { type: String },
+    learningDomain: { type: String },
 
     onboardingCompleted: {
       type: Boolean,
@@ -76,7 +96,6 @@ const userSchema = new mongoose.Schema(
     knowledgeScore: { type: Number }, // Derived from experience or assessment
     weeklyHours: { type: Number },
     archetype: { type: String },
-    domain: { type: String },
 
     // Dashboard Stats
     completedAssessments: { type: Number, default: 0 },

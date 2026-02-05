@@ -8,6 +8,8 @@ import Home from '../pages/Home';  // ✅ NEW
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import VerifyEmail from '../pages/VerifyEmail';
+import AcademicStatus from '../pages/AcademicStatus';
+import AcademicDetails from '../pages/AcademicDetails';
 
 // Onboarding & Assessment
 import Onboarding from '../pages/Onboarding';
@@ -65,6 +67,26 @@ const AppRoutes = () => {
           element={
             <PublicRoute>
               <VerifyEmail />
+            </PublicRoute>
+          }
+        />
+
+        {/* Step 3: Academic Status */}
+        <Route
+          path="/academic-status"
+          element={
+            <PublicRoute>
+              <AcademicStatus />
+            </PublicRoute>
+          }
+        />
+
+        {/* Step 4: Academic Details (Completion) */}
+        <Route
+          path="/academic-details"
+          element={
+            <PublicRoute>
+              <AcademicDetails />
             </PublicRoute>
           }
         />

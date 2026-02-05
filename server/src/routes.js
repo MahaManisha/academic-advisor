@@ -23,6 +23,9 @@ router.get("/health", (req, res) => {
 });
 
 // Auth & core modules
+import onboardingRoutes from "./modules/onboarding/onboarding.routes.js";
+
+router.use("/onboarding", onboardingRoutes);
 router.use("/courses", courseRoutes);
 router.use("/config", configRoutes);
 router.use("/peer", peerRoutes);

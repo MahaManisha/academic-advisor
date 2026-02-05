@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock, FaGraduationCap, FaCalendarAlt } from 'react-icons/fa';
+import { FaUser, FaEnvelope } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import ProgressSteps from '../components/common/ProgressSteps';
 import './Register.css';
 
 const Register = () => {
@@ -10,11 +11,7 @@ const Register = () => {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    course: '',
-    year: '',
+    email: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,25 +27,10 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const { confirmPassword, ...userData } = formData;
-      await register(userData);
-
-      // STRICT REQUIREMENT: Redirect to Verify Email page
+      await register(formData);
       navigate('/verify-email', { state: { email: formData.email } });
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -60,8 +42,13 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h1 className="register-title">Academic Advisor</h1>
-        <p className="register-subtitle">Create your account</p>
+        {/* Progress Indicator - Step 1 */}
+        <ProgressSteps currentStep={1} />
+
+        <h1 className="register-title">Start Your Journey 🚀</h1>
+        <p className="register-subtitle">
+          Join thousands of students shaping their future with AI.
+        </p>
 
         <form onSubmit={handleSubmit} className="register-form">
           {error && <div className="error-message">{error}</div>}
@@ -76,6 +63,7 @@ const Register = () => {
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="name"
             />
           </div>
 
@@ -84,84 +72,26 @@ const Register = () => {
             <input
               type="email"
               name="email"
-              placeholder="Email address"
+              placeholder="Email Business/Personal"
               value={formData.email}
               onChange={handleChange}
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
 
-          <div className="input-group">
-            <FaGraduationCap className="input-icon" />
-            <select
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            >
-              <option value="">Select Course</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Information Technology">Information Technology</option>
-              <option value="Electronics Engineering">Electronics Engineering</option>
-              <option value="Mechanical Engineering">Mechanical Engineering</option>
-              <option value="Civil Engineering">Civil Engineering</option>
-              <option value="Business Administration">Business Administration</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div className="input-group">
-            <FaCalendarAlt className="input-icon" />
-            <select
-              name="year"
-              value={formData.year}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            >
-              <option value="">Select Year</option>
-              <option value="First Year">First Year</option>
-              <option value="Second Year">Second Year</option>
-              <option value="Third Year">Third Year</option>
-              <option value="Fourth Year">Fourth Year</option>
-            </select>
-          </div>
-
-          <div className="input-group">
-            <FaLock className="input-icon" />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="input-group">
-            <FaLock className="input-icon" />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <button type="submit" className="register-button" disabled={loading}>
-            {loading ? 'Creating Account (Sending OTP)...' : 'Sign Up'}
+          <button type="submit" className="register-button pulse-on-hover" disabled={loading}>
+            {loading ? (
+              <span className="loading-text">Sending Magic Link...</span>
+            ) : (
+              'Get Started Flow'
+            )}
           </button>
         </form>
 
         <p className="login-link">
-          Already have an account? <Link to="/login">Sign in</Link>
+          Already a member? <Link to="/login">Sign in here</Link>
         </p>
       </div>
     </div>

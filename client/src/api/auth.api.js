@@ -46,3 +46,9 @@ export const completeOnboarding = async (data) => {
   const response = await axios.post('/users/onboarding', data);
   return response.data;
 };
+
+// Complete Registration (Final Step)
+export const completeRegistration = async (data) => {
+  const response = await axios.post('/auth/complete-registration', data);
+  return response.data;
+};

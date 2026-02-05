@@ -1,140 +1,218 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { completeOnboarding } from '../api/auth.api'; // ✅ IMPORTED NEW API
-import axiosInstance from '../api/axios';
+import { getOnboardingQuestions, submitOnboarding } from '../api/onboarding.api';
 import {
-  FaGraduationCap,
   FaArrowRight,
   FaArrowLeft,
-  FaBook,
-  FaBriefcase,
-  FaLightbulb,
   FaCheckCircle,
   FaRocket,
+  FaCode,
+  FaBrain,
+  FaCalculator,
+  FaLightbulb,
   FaUserGraduate,
-  FaLaptopCode,
-  FaBookOpen,
-  FaClock
+  FaBriefcase
 } from 'react-icons/fa';
-import { analyzeCourse } from '../api/nlp.api';
 import './Onboarding.css';
 
 const Onboarding = () => {
-  const { user, login } = useAuth(); // Use login/loadUser to refresh state if needed
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [nlpData, setNlpData] = useState(null);
-  const [loadingNLP, setLoadingNLP] = useState(false);
+  const [config, setConfig] = useState(null);
 
-  // ... (rest of state)
+  // Form State
+  const [formData, setFormData] = useState({
+    subjects: {}, // { "Maths": 3, "Physics": 4 }
+    interests: [],
+    careerGoal: '',
+    learningStyle: '',
+    selfAssessment: {
+      coding: 3,
+      problemSolving: 3,
+      math: 3
+    }
+  });
 
-  // ... (init useEffect)
+  // Fetch Onboarding Config on Mount
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        setLoading(true);
+        const response = await getOnboardingQuestions();
+        if (response.success) {
+          setConfig(response.data);
+          // Initialize subjects with default middle value (3)
+          const initialSubjects = {};
+          response.data.subjects.forEach(sub => {
+            initialSubjects[sub] = 3;
+          });
+          setFormData(prev => ({ ...prev, subjects: initialSubjects }));
+        }
+      } catch (err) {
+        console.error("Failed to load onboarding:", err);
+        setError("Failed to load onboarding data. Please try refreshing.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  const handleNext = () => {
+    if (currentStep < 4) setCurrentStep(currentStep + 1);
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const toggleInterest = (interest) => {
+    setFormData(prev => {
+      const exists = prev.interests.includes(interest);
+      if (exists) {
+        return { ...prev, interests: prev.interests.filter(i => i !== interest) };
+      } else {
+        return { ...prev, interests: [...prev.interests, interest] };
+      }
+    });
+  };
 
   const handleSubmit = async () => {
     try {
-      const onboardingData = {
-        focus: formData.focus,
-        learningMode: formData.learningMode,
-        experienceLevel: formData.experienceLevel,
-        course: user?.course, // ensure backend receives this if needed or it uses DB value
-        year: user?.year // pass year
+      setLoading(true);
+      // Transform subjects object to array of objects for backend
+      const payload = {
+        ...formData,
+        subjects: Object.entries(formData.subjects).map(([name, proficiency]) => ({
+          name,
+          proficiency
+        }))
       };
 
-      const result = await completeOnboarding(onboardingData);
+      const result = await submitOnboarding(payload);
 
-      // Force refresh of auth state to pick up profileCompleted: true
-      if (result.success && result.user) {
-        // Optionally update context here if a method exists, or reload page. 
-        // For now, redirect to assessment
-        navigate('/assessment-test', { state: { subjects: nlpData?.suggestedSkills || [] } });
+      if (result.success) {
+        // Update local auth context
+        if (user) {
+          updateProfile({ ...user, onboardingCompleted: true, profileCompleted: true });
+        }
+        // Redirect to dashboard
+        navigate('/dashboard');
       }
-
-    } catch (error) {
-      console.error('Failed to save onboarding:', error);
-      // Ideally show UI error
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError("Failed to submit onboarding. Please try again.");
+      setLoading(false);
     }
   };
 
-  // Step 1: Strategic Context
+  // --- RENDERERS ---
+
+  // Step 1: Subject Proficiency
   const renderStep1 = () => (
     <div className="onboarding-step fade-in">
       <div className="step-header">
-        <span className="step-badge">Step 1 of 3</span>
-        <h2>Welcome, {user?.fullName?.split(' ')[0] || 'Student'}!</h2>
-        <p>Let's tailor the platform for your <strong>{user?.course || 'Academic'}</strong> journey.</p>
+        <span className="step-badge">Step 1 of 4</span>
+        <h2>Subject Proficiency</h2>
+        <p>Rate your comfort level with your semester subjects (1 = Beginner, 5 = Expert).</p>
       </div>
 
-      <div className="form-group">
-        <label>What is your primary focus this semester?</label>
-        <div className="card-grid">
-          {options.focusAreas.map(opt => (
-            <div
-              key={opt.id}
-              className={`selection-card ${formData.focus === opt.id ? 'active' : ''}`}
-              onClick={() => setFormData({ ...formData, focus: opt.id })}
-            >
-              <div className="card-icon">
-                {ICON_MAP[opt.id] || <FaBookOpen />}
-              </div>
-              <h3>{opt.title}</h3>
-              <p>{opt.desc}</p>
+      <div className="subjects-grid">
+        {config?.subjects?.map((subject) => (
+          <div key={subject} className="subject-slider-row">
+            <div className="subject-label">{subject}</div>
+            <div className="slider-wrapper">
+              <input
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value={formData.subjects[subject] || 3}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  subjects: { ...formData.subjects, [subject]: parseInt(e.target.value) }
+                })}
+                className="custom-range"
+              />
+              <div className="slider-value">{formData.subjects[subject] || 3}/5</div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 
-  // Step 2: Intelligent Profile
+  // Step 2: Interests
   const renderStep2 = () => (
     <div className="onboarding-step fade-in">
       <div className="step-header">
-        <span className="step-badge">Step 2 of 3</span>
-        <h2>Your Learning Profile</h2>
-        <p>We analyzed your major. Customize how you learn best.</p>
+        <span className="step-badge">Step 2 of 4</span>
+        <h2>Your Interests</h2>
+        <p>Select the topics that excite you the most.</p>
+      </div>
+
+      <div className="interests-grid">
+        {config?.interests?.map((interest) => (
+          <div
+            key={interest}
+            className={`interest-chip ${formData.interests.includes(interest) ? 'active' : ''}`}
+            onClick={() => toggleInterest(interest)}
+          >
+            {interest}
+            {formData.interests.includes(interest) && <FaCheckCircle className="check-icon" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Step 3: Career & Learning Style
+  const renderStep3 = () => (
+    <div className="onboarding-step fade-in">
+      <div className="step-header">
+        <span className="step-badge">Step 3 of 4</span>
+        <h2>Future & Style</h2>
+        <p>Tell us about your goals and how you learn best.</p>
       </div>
 
       <div className="split-layout">
         <div className="form-group">
-          <label>Experience Level in {nlpData?.domain || 'your field'}</label>
-          <div className="slider-container">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={formData.experienceLevel}
-              onChange={(e) => setFormData({ ...formData, experienceLevel: parseInt(e.target.value) })}
-              className="custom-range"
-            />
-            <div className="range-labels">
-              <span>Beginner</span>
-              <span>Intermediate</span>
-              <span>Expert</span>
-            </div>
-            <div className="current-val-bubble" style={{ left: `${formData.experienceLevel}%` }}>
-              {formData.experienceLevel}%
-            </div>
+          <label><FaBriefcase /> Career Goal</label>
+          <div className="option-list scrollable-list">
+            {config?.careerGoals?.map(goal => (
+              <div
+                key={goal}
+                className={`option-row ${formData.careerGoal === goal ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, careerGoal: goal })}
+              >
+                <div className="radio-circle">
+                  {formData.careerGoal === goal && <div className="inner-circle" />}
+                </div>
+                <span>{goal}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="form-group">
-          <label>Preferred Learning Mode</label>
+          <label><FaLightbulb /> Learning Style</label>
           <div className="option-list">
-            {options.learningModes.map(mode => (
+            {config?.learningStyles?.map(style => (
               <div
-                key={mode.id}
-                className={`option-row ${formData.learningMode === mode.id ? 'selected' : ''}`}
-                onClick={() => setFormData({ ...formData, learningMode: mode.id })}
+                key={style.id}
+                className={`option-row ${formData.learningStyle === style.id ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, learningStyle: style.id })}
               >
                 <div className="radio-circle">
-                  {formData.learningMode === mode.id && <div className="inner-circle" />}
+                  {formData.learningStyle === style.id && <div className="inner-circle" />}
                 </div>
-                <div className="option-text">
-                  <strong>{mode.label}</strong>
-                  <span>{mode.desc}</span>
-                </div>
-                {nlpData?.learningpath === mode.id && <span className="rec-badge">Recommended</span>}
+                <span>{style.label}</span>
               </div>
             ))}
           </div>
@@ -143,80 +221,143 @@ const Onboarding = () => {
     </div>
   );
 
-  // Step 3: Launch
-  const renderStep3 = () => (
-    <div className="onboarding-step fade-in text-center">
-      <div className="launch-icon">
-        <FaRocket />
-      </div>
-      <h2>You're All Set!</h2>
-      <p>We have built a personalized curriculum for <strong>{user?.course || 'your course'}</strong>.</p>
-
-      <div className="summary-box">
-        <div className="summary-item">
-          <FaCheckCircle className="text-green" />
-          <span>Focus: <strong>{options.focusAreas.find(o => o.id === formData.focus)?.title || formData.focus}</strong></span>
-        </div>
-        <div className="summary-item">
-          <FaCheckCircle className="text-green" />
-          <span>Level: <strong>{formData.experienceLevel > 70 ? 'Advanced' : formData.experienceLevel > 30 ? 'Intermediate' : 'Beginner'}</strong></span>
-        </div>
+  // Step 4: Self Assessment
+  const renderStep4 = () => (
+    <div className="onboarding-step fade-in">
+      <div className="step-header">
+        <span className="step-badge">Step 4 of 4</span>
+        <h2>Self Assessment</h2>
+        <p>Honestly rate your core skills to help us personalize your plan.</p>
       </div>
 
-      <div className="action-area">
-        <p className="sub-text">Let's verify your skills with a quick diagnostic.</p>
+      <div className="assessment-sliders">
+        {/* Coding */}
+        <div className="assessment-item">
+          <label><FaCode /> Coding Skills</label>
+          <div className="slider-wrapper">
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={formData.selfAssessment.coding}
+              onChange={(e) => setFormData({
+                ...formData,
+                selfAssessment: { ...formData.selfAssessment, coding: parseInt(e.target.value) }
+              })}
+              className="custom-range"
+            />
+            <div className="slider-value">{formData.selfAssessment.coding}/5</div>
+          </div>
+        </div>
+
+        {/* Problem Solving */}
+        <div className="assessment-item">
+          <label><FaBrain /> Problem Solving</label>
+          <div className="slider-wrapper">
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={formData.selfAssessment.problemSolving}
+              onChange={(e) => setFormData({
+                ...formData,
+                selfAssessment: { ...formData.selfAssessment, problemSolving: parseInt(e.target.value) }
+              })}
+              className="custom-range"
+            />
+            <div className="slider-value">{formData.selfAssessment.problemSolving}/5</div>
+          </div>
+        </div>
+
+        {/* Math */}
+        <div className="assessment-item">
+          <label><FaCalculator /> Mathematical Aptitude</label>
+          <div className="slider-wrapper">
+            <input
+              type="range"
+              min="1"
+              max="5"
+              value={formData.selfAssessment.math}
+              onChange={(e) => setFormData({
+                ...formData,
+                selfAssessment: { ...formData.selfAssessment, math: parseInt(e.target.value) }
+              })}
+              className="custom-range"
+            />
+            <div className="slider-value">{formData.selfAssessment.math}/5</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="launch-area text-center mt-8">
         <button className="btn-primary-large" onClick={handleSubmit}>
-          Start Diagnostic Test <FaArrowRight />
+          Complete Onboarding <FaRocket />
         </button>
       </div>
     </div>
   );
 
+  if (loading && !config) {
+    return (
+      <div className="onboarding-wrapper">
+        <div className="loading-spinner">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="onboarding-wrapper">
+        <div className="error-card">
+          <h3>Something went wrong</h3>
+          <p>{error}</p>
+          <button className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="onboarding-wrapper">
       <div className="onboarding-main-card">
-        {loadingNLP && (
-          <div className="nlp-loading-bar">
-            <span>Analyzing course curriculum...</span>
-            <div className="loading-line" />
-          </div>
-        )}
-
         <div className="step-content">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
+          {currentStep === 4 && renderStep4()}
         </div>
 
-        {currentStep < 3 && (
-          <div className="navigation-footer">
-            <button
-              className="btn-text"
-              onClick={handleBack}
-              disabled={currentStep === 1}
-              style={{ visibility: currentStep === 1 ? 'hidden' : 'visible' }}
-            >
-              <FaArrowLeft /> Back
-            </button>
+        <div className="navigation-footer">
+          <button
+            className="btn-text"
+            onClick={handleBack}
+            disabled={currentStep === 1}
+            style={{ visibility: currentStep === 1 ? 'hidden' : 'visible' }}
+          >
+            <FaArrowLeft /> Back
+          </button>
 
-            <div className="step-dots">
-              {[1, 2, 3].map(s => (
-                <div key={s} className={`dot ${s === currentStep ? 'active' : ''} ${s < currentStep ? 'completed' : ''}`} />
-              ))}
-            </div>
+          <div className="step-dots">
+            {[1, 2, 3, 4].map(s => (
+              <div key={s} className={`dot ${s === currentStep ? 'active' : ''} ${s < currentStep ? 'completed' : ''}`} />
+            ))}
+          </div>
 
+          {currentStep < 4 ? (
             <button
               className="btn-primary"
               onClick={handleNext}
               disabled={
-                (currentStep === 1 && !formData.focus) ||
-                (currentStep === 2 && !formData.learningMode)
+                (currentStep === 2 && formData.interests.length === 0) ||
+                (currentStep === 3 && (!formData.careerGoal || !formData.learningStyle))
               }
             >
               Next <FaArrowRight />
             </button>
-          </div>
-        )}
+          ) : (
+            <div style={{ width: '80px' }}></div> // Spacer
+          )}
+        </div>
       </div>
     </div>
   );
