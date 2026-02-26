@@ -173,12 +173,12 @@ const AdminStudentView = () => {
                                     <h4><FaChartLine /> Performance</h4>
                                     <div className="stats-row">
                                         <div className="stat-box">
-                                            <span className="stat-val">{studentDetails.performance.attendance}%</span>
+                                            <span className="stat-val">{studentDetails.performance.attendance || 'N/A'}</span>
                                             <span className="stat-lbl">Attendance</span>
                                         </div>
                                         <div className="stat-box">
-                                            <span className="stat-val">{studentDetails.performance.assignments}</span>
-                                            <span className="stat-lbl">Assignments</span>
+                                            <span className="stat-val">{studentDetails.performance.completed || 0}</span>
+                                            <span className="stat-lbl">Completed Assessments</span>
                                         </div>
                                     </div>
                                 </div>
@@ -186,8 +186,13 @@ const AdminStudentView = () => {
                                 <div className="profile-section">
                                     <h4><FaBookOpen /> AI Recommendations</h4>
                                     <ul className="recs-list">
-                                        <li>🚀 Recommended: Advanced Data Structures based on skill level.</li>
-                                        <li>💡 Tip: Increase weekly study hours to meet goals.</li>
+                                        {studentDetails.recommendations?.length > 0 ? (
+                                            studentDetails.recommendations.map((rec, i) => (
+                                                <li key={i}>{rec}</li>
+                                            ))
+                                        ) : (
+                                            <li><span className="text-gray-500">No specific AI recommendations generated yet.</span></li>
+                                        )}
                                     </ul>
                                 </div>
                             </div>

@@ -1,12 +1,12 @@
 // server/src/modules/onboarding/onboarding.rag.service.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { getQuestionGenerationPrompt, getAnswerEvaluationPrompt } from "./onboarding.prompt.js";
 
-const getGenAI = () => {
-    if (!process.env.GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY is not defined in environment variables");
+const getGroqClient = () => {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error("GROQ_API_KEY is not defined in environment variables");
     }
-    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    return new Groq({ apiKey: process.env.GROQ_API_KEY });
 };
 
 // Fallback static context since we do not have a full Vector Database populated
@@ -31,11 +31,15 @@ export const generateAdaptiveQuestion = async (domain, difficultyLevel, previous
         const retrievedChunks = await retrieveSyllabusChunks(domain, previousAnalysis, difficultyLevel);
         const prompt = getQuestionGenerationPrompt(retrievedChunks, previousAnalysis, difficultyLevel, domain);
 
-        const genAI = getGenAI();
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+        const groq = getGroqClient();
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+        });
 
+        const text = completion.choices[0]?.message?.content || "{}";
         return JSON.parse(text);
     } catch (error) {
         console.error("Adaptive Question Generation Error:", error);
@@ -48,11 +52,15 @@ export const evaluateAdaptiveAnswer = async (domain, question, studentAnswer) =>
         const retrievedChunks = await retrieveSyllabusChunks(domain, null, question.difficulty);
         const prompt = getAnswerEvaluationPrompt(retrievedChunks, question, studentAnswer);
 
-        const genAI = getGenAI();
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+        const groq = getGroqClient();
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+        });
 
+        const text = completion.choices[0]?.message?.content || "{}";
         return JSON.parse(text);
     } catch (error) {
         console.error("Adaptive Evaluation Error:", error);
