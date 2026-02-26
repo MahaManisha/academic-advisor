@@ -1,3 +1,7 @@
+import { extractRelevantSubjects } from "../../utils/ai.service.js";
+import { scrapeSyllabus } from "../../utils/scrape.service.js";
+import User from "../user/user.model.js";
+
 export const analyzeCourse = async (req, res, next) => {
     try {
         const { course } = req.body;
@@ -72,6 +76,49 @@ export const analyzeCourse = async (req, res, next) => {
         ];
 
         res.json({ success: true, analysis });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const extractSubjects = async (req, res, next) => {
+    try {
+        const { context, url } = req.body;
+        let finalContext = context;
+
+        // Fetch User Context for defaults
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const studentContext = {
+            degree: user.degreeType || "Unknown Degree",
+            department: user.domain || user.course || "General",
+            year: user.year || 1
+        };
+
+        if (url || user.syllabusUrl) {
+            try {
+                const targetUrl = url || user.syllabusUrl;
+                if (targetUrl) {
+                    finalContext = await scrapeSyllabus(targetUrl);
+                }
+            } catch (scrapeErr) {
+                console.warn("Scraping failed:", scrapeErr.message);
+                if (!finalContext) {
+                    return res.status(400).json({ message: "Failed to scrape syllabus and no context provided." });
+                }
+            }
+        }
+
+        if (!finalContext || !finalContext.trim()) {
+            return res.status(400).json({ message: "Syllabus content or URL is required" });
+        }
+
+        const subjects = await extractRelevantSubjects(finalContext, studentContext);
+        res.json({ success: true, subjects });
 
     } catch (error) {
         next(error);

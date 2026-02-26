@@ -54,12 +54,10 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ CRITICAL: Prevent admin from accessing student routes (except allowed shared views)
+  // ✅ CRITICAL: Prevent admin from accessing student routes
   const isAdmin = user?.role === 'admin';
-  // Admin can access: Admin Dashboard, Student Dashboard (View Mode), and Settings
-  const adminAllowedPaths = ['/dashboard', '/settings'];
 
-  if (isAdmin && !adminAllowedPaths.includes(location.pathname)) {
+  if (isAdmin) {
     // ✅ Admin should NEVER see student routes or onboarding
     return <Navigate to="/admin/dashboard" replace />;
   }

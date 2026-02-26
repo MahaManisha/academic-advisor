@@ -29,3 +29,18 @@ export const submitAssessment = async (domain, answers) => {
         throw error.response?.data || error.message;
     }
 };
+
+// Generate AI assessment from context
+// Generate AI assessment from context or URL
+// Param can be string (legacy) or object { context, url }
+export const generateAssessment = async (input) => {
+    try {
+        const payload = typeof input === 'string' ? { context: input } : input;
+        const response = await axios.post('/assessments/generate', payload);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+

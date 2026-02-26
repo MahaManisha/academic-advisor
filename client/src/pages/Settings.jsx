@@ -55,7 +55,7 @@ const Settings = () => {
 
   const handleSaveSettings = () => {
     // TODO: Implement API call to save settings
-    console.log('Saving settings:', settings);
+
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

@@ -73,8 +73,28 @@ export const getOnboardingQuestions = async (userId) => {
         const domain = user.learningDomain || user.course;
         subjects = LEARNING_PATH_MAP[domain] || LEARNING_PATH_MAP["default"];
     } else {
-        // Student
-        subjects = getSyllabus(user.course, user.year);
+        // Student - Check for Syllabus URL first
+        if (user.syllabusUrl) {
+            try {
+                // Dynamic Extraction
+                const { scrapeSyllabus } = await import('../../utils/scrape.service.js');
+                const { extractSubjectsFromContext } = await import('../../utils/ai.service.js');
+
+                const context = await scrapeSyllabus(user.syllabusUrl);
+                const extracted = await extractSubjectsFromContext(context);
+
+                if (extracted && extracted.subjects && extracted.subjects.length > 0) {
+                    subjects = extracted.subjects;
+                } else {
+                    subjects = getSyllabus(user.course, user.year);
+                }
+            } catch (err) {
+                console.error("Failed to extract syllabus from URL, falling back to static:", err.message);
+                subjects = getSyllabus(user.course, user.year);
+            }
+        } else {
+            subjects = getSyllabus(user.course, user.year);
+        }
     }
 
     return {

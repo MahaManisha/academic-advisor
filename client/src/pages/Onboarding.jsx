@@ -7,11 +7,8 @@ import {
   FaArrowLeft,
   FaCheckCircle,
   FaRocket,
-  FaCode,
   FaBrain,
-  FaCalculator,
   FaLightbulb,
-  FaUserGraduate,
   FaBriefcase
 } from 'react-icons/fa';
 import './Onboarding.css';
@@ -24,6 +21,20 @@ const Onboarding = () => {
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState(null);
+
+  // Adaptive Question State
+  const [onboardingDomain, setOnboardingDomain] = useState("Computer Science");
+  const [adaptiveSession, setAdaptiveSession] = useState({
+    active: false,
+    questionsCompleted: 0,
+    currentQuestion: null,
+    currentDifficulty: 3,
+    evaluations: [],
+    finalScore: 0
+  });
+  const [studentAnswer, setStudentAnswer] = useState("");
+  const [questionLoading, setQuestionLoading] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -86,7 +97,6 @@ const Onboarding = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      // Transform subjects object to array of objects for backend
       const payload = {
         ...formData,
         subjects: Object.entries(formData.subjects).map(([name, proficiency]) => ({
@@ -98,17 +108,107 @@ const Onboarding = () => {
       const result = await submitOnboarding(payload);
 
       if (result.success) {
-        // Update local auth context
         if (user) {
           updateProfile({ ...user, onboardingCompleted: true, profileCompleted: true });
         }
-        // Redirect to dashboard
         navigate('/dashboard');
       }
     } catch (err) {
       console.error("Submission error:", err);
       setError("Failed to submit onboarding. Please try again.");
       setLoading(false);
+    }
+  };
+
+  // Adaptive Logic Fetcher
+  const startAdaptiveTest = async () => {
+    try {
+      setQuestionLoading(true);
+      const { getAdaptiveQuestion } = await import('../api/onboarding.api');
+
+      // Infer domain from chosen career or default
+      const domain = formData.careerGoal || "Computer Science";
+      setOnboardingDomain(domain);
+
+      const res = await getAdaptiveQuestion(domain, 3, null); // Start at diff 3
+      setAdaptiveSession({
+        active: true,
+        questionsCompleted: 0,
+        currentQuestion: res.question,
+        currentDifficulty: 3,
+        evaluations: [],
+        finalScore: 0
+      });
+      setCurrentStep(4);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to generate adaptive test.");
+    } finally {
+      setQuestionLoading(false);
+    }
+  };
+
+  const handleAdaptiveSubmit = async () => {
+    if (!studentAnswer.trim()) return;
+
+    try {
+      setQuestionLoading(true);
+      const { evaluateAdaptiveAnswer, getAdaptiveQuestion } = await import('../api/onboarding.api');
+
+      // Evaluate Answer
+      const evalRes = await evaluateAdaptiveAnswer(
+        onboardingDomain,
+        adaptiveSession.currentQuestion,
+        studentAnswer
+      );
+
+      const newEvaluations = [...adaptiveSession.evaluations, evalRes.evaluation];
+      const newCompleted = adaptiveSession.questionsCompleted + 1;
+
+      setFeedback(evalRes.evaluation);
+
+      // Calculate Next Step
+      if (newCompleted >= 5) {
+        // Done with 5 questions
+        const avgScore = newEvaluations.reduce((acc, curr) => acc + curr.score, 0) / 5;
+        setAdaptiveSession(prev => ({ ...prev, active: false, finalScore: avgScore }));
+
+        // Map the final score back to our generic selfAssessment form format
+        setFormData(prev => ({
+          ...prev,
+          selfAssessment: { coding: Math.ceil(evalRes.nextDifficulty), problemSolving: Math.ceil(evalRes.nextDifficulty), math: 3 }
+        }));
+
+        // Allow them to move to step 5 (submit)
+        setCurrentStep(5);
+        return;
+      }
+
+      setTimeout(async () => {
+        // Fetch Next Question
+        const previousAnalysis = {
+          score: evalRes.evaluation.score,
+          weaknesses: evalRes.evaluation.weaknesses,
+        };
+
+        const qRes = await getAdaptiveQuestion(onboardingDomain, evalRes.nextDifficulty, previousAnalysis);
+
+        setAdaptiveSession(prev => ({
+          ...prev,
+          currentQuestion: qRes.question,
+          currentDifficulty: evalRes.nextDifficulty,
+          questionsCompleted: newCompleted,
+          evaluations: newEvaluations
+        }));
+
+        setFeedback(null);
+        setStudentAnswer("");
+        setQuestionLoading(false);
+      }, 3000); // Wait 3 seconds to let them read feedback
+
+    } catch (err) {
+      console.error(err);
+      setError("Error checking answer");
     }
   };
 
@@ -221,74 +321,73 @@ const Onboarding = () => {
     </div>
   );
 
-  // Step 4: Self Assessment
-  const renderStep4 = () => (
-    <div className="onboarding-step fade-in">
-      <div className="step-header">
-        <span className="step-badge">Step 4 of 4</span>
-        <h2>Self Assessment</h2>
-        <p>Honestly rate your core skills to help us personalize your plan.</p>
+  // Step 4: Adaptive Knowledge Test
+  const renderStep4 = () => {
+    if (questionLoading && !feedback) return <div className="loading-spinner">Analyzing Domain & Generating...</div>;
+
+    if (!adaptiveSession.active) {
+      return (
+        <div className="onboarding-step fade-in text-center">
+          <h2>Adaptive Diagnostic Test</h2>
+          <p>We're going to ask you up to 5 quick questions based on your career goal ({formData.careerGoal || 'Technology'}) to test your conceptual depth.</p>
+          <p>The difficulty will change dynamically based on your answers!</p>
+          <button className="btn-primary-large mt-4" onClick={startAdaptiveTest}>
+            Start Diagnostic <FaBrain />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="onboarding-step fade-in">
+        <div className="step-header">
+          <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5 (Level {adaptiveSession.currentDifficulty})</span>
+          <h2>{adaptiveSession.currentQuestion?.question}</h2>
+          <p>Take your time and explain your answer clearly.</p>
+        </div>
+
+        {feedback && (
+          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`}>
+            <h4>Score: {Math.round(feedback.score * 100)}%</h4>
+            <p>{feedback.conceptStrength}</p>
+            {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}
+            <p><em>Generating next question...</em></p>
+          </div>
+        )}
+
+        {!feedback && adaptiveSession.currentQuestion?.options && adaptiveSession.currentQuestion.options.length > 0 ? (
+          <div className="options-grid">
+            {adaptiveSession.currentQuestion.options.map(opt => (
+              <div key={opt} className={`option-row ${studentAnswer === opt ? 'selected' : ''}`} onClick={() => setStudentAnswer(opt)}>
+                <div className="radio-circle">
+                  {studentAnswer === opt && <div className="inner-circle" />}
+                </div>
+                <span>{opt}</span>
+              </div>
+            ))}
+            <button className="btn-primary mt-4" disabled={!studentAnswer} onClick={handleAdaptiveSubmit}>Submit Answer</button>
+          </div>
+        ) : !feedback && (
+          <div className="text-area-submit">
+            <textarea
+              className="w-full p-4 border rounded"
+              rows="4"
+              placeholder="Type your answer here..."
+              value={studentAnswer}
+              onChange={(e) => setStudentAnswer(e.target.value)}
+            ></textarea>
+            <button className="btn-primary mt-4" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>Submit Answer</button>
+          </div>
+        )}
       </div>
+    )
+  };
 
-      <div className="assessment-sliders">
-        {/* Coding */}
-        <div className="assessment-item">
-          <label><FaCode /> Coding Skills</label>
-          <div className="slider-wrapper">
-            <input
-              type="range"
-              min="1"
-              max="5"
-              value={formData.selfAssessment.coding}
-              onChange={(e) => setFormData({
-                ...formData,
-                selfAssessment: { ...formData.selfAssessment, coding: parseInt(e.target.value) }
-              })}
-              className="custom-range"
-            />
-            <div className="slider-value">{formData.selfAssessment.coding}/5</div>
-          </div>
-        </div>
-
-        {/* Problem Solving */}
-        <div className="assessment-item">
-          <label><FaBrain /> Problem Solving</label>
-          <div className="slider-wrapper">
-            <input
-              type="range"
-              min="1"
-              max="5"
-              value={formData.selfAssessment.problemSolving}
-              onChange={(e) => setFormData({
-                ...formData,
-                selfAssessment: { ...formData.selfAssessment, problemSolving: parseInt(e.target.value) }
-              })}
-              className="custom-range"
-            />
-            <div className="slider-value">{formData.selfAssessment.problemSolving}/5</div>
-          </div>
-        </div>
-
-        {/* Math */}
-        <div className="assessment-item">
-          <label><FaCalculator /> Mathematical Aptitude</label>
-          <div className="slider-wrapper">
-            <input
-              type="range"
-              min="1"
-              max="5"
-              value={formData.selfAssessment.math}
-              onChange={(e) => setFormData({
-                ...formData,
-                selfAssessment: { ...formData.selfAssessment, math: parseInt(e.target.value) }
-              })}
-              className="custom-range"
-            />
-            <div className="slider-value">{formData.selfAssessment.math}/5</div>
-          </div>
-        </div>
-      </div>
-
+  // Step 5: Final Submission
+  const renderStep5 = () => (
+    <div className="onboarding-step fade-in text-center">
+      <h2>Great Job!</h2>
+      <p>We've calibrated our system based on your proficiency. Click below to launch your dashboard!</p>
       <div className="launch-area text-center mt-8">
         <button className="btn-primary-large" onClick={handleSubmit}>
           Complete Onboarding <FaRocket />
@@ -325,6 +424,7 @@ const Onboarding = () => {
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
+          {currentStep === 5 && renderStep5()}
         </div>
 
         <div className="navigation-footer">
@@ -338,7 +438,7 @@ const Onboarding = () => {
           </button>
 
           <div className="step-dots">
-            {[1, 2, 3, 4].map(s => (
+            {[1, 2, 3, 4, 5].map(s => (
               <div key={s} className={`dot ${s === currentStep ? 'active' : ''} ${s < currentStep ? 'completed' : ''}`} />
             ))}
           </div>

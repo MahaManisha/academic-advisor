@@ -14,6 +14,7 @@ import AcademicDetails from '../pages/AcademicDetails';
 // Onboarding & Assessment
 import Onboarding from '../pages/Onboarding';
 import AssessmentTest from '../pages/AssessmentTest';
+import AssessmentIntro from '../pages/AssessmentIntro';
 
 // Main Pages
 import Dashboard from '../pages/Dashboard';
@@ -110,6 +111,17 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Assessment Intro / Generator Page */}
+        <Route
+          path="/assessment-intro"
+          element={
+            <ProtectedRoute>
+              <AssessmentIntro />
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* Protected Routes - Main App */}
         <Route

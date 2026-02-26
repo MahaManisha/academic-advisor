@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import ReactMarkdown from 'react-markdown';
 import {
   FaPaperPlane,
   FaRobot,
@@ -20,11 +21,12 @@ const AdvisorChat = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'bot',
-      content: `Hello ${user?.name?.split(' ')[0] || 'Student'}! I'm your AI Academic Advisor. How can I help you today?`,
+      content: `Hello ${user?.name?.split(' ')[0] || 'Student'}! I'm your AI Academic Advisor powered by **Gemini AI**. How can I help you today?`,
       timestamp: new Date()
     }
   ]);
@@ -41,7 +43,7 @@ const AdvisorChat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const quickQuestions = [
     {
@@ -64,10 +66,8 @@ const AdvisorChat = () => {
     }
   ];
 
-
-
   const handleSendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
     const userMessage = {
       id: Date.now(),
@@ -78,9 +78,10 @@ const AdvisorChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
+    setIsLoading(true);
 
     try {
-      // Call real backend API
+      // Call real backend API (Gemini AI)
       const data = await sendMessage(message);
 
       const botResponse = {
@@ -88,7 +89,7 @@ const AdvisorChat = () => {
         type: 'bot',
         content: data.response,
         timestamp: new Date(),
-        confidence: data.confidence // Optional: show confidence
+        confidence: data.confidence
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
@@ -100,6 +101,8 @@ const AdvisorChat = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,10 +188,40 @@ const AdvisorChat = () => {
                         })}
                       </span>
                     </div>
-                    <div className="message-text">{msg.content}</div>
+                    <div className="message-text markdown-body">
+                      {msg.type === 'bot' ? (
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
+
+              {/* Typing Indicator */}
+              {isLoading && (
+                <div className="message bot">
+                  <div className="message-avatar">
+                    <div className="avatar-bot">
+                      <FaRobot />
+                    </div>
+                  </div>
+                  <div className="message-content">
+                    <div className="message-header">
+                      <span className="message-sender">AI Advisor</span>
+                    </div>
+                    <div className="message-text">
+                      <div className="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -202,11 +235,12 @@ const AdvisorChat = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   rows="1"
+                  disabled={isLoading}
                 />
                 <button
                   className="btn-send"
                   onClick={handleSendMessage}
-                  disabled={!message.trim()}
+                  disabled={!message.trim() || isLoading}
                 >
                   <FaPaperPlane />
                 </button>

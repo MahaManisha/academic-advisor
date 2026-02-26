@@ -25,9 +25,57 @@ const AssessmentTest = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch dynamic questions
+  // Fetch dynamic questions or use passed assessment
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const initializeAssessment = async () => {
+      // Check if assessment data was passed via navigation
+      if (location.state?.assessment) {
+        const assessmentData = location.state.assessment;
+
+        // Flatten sections into a single list of questions if structure matches AI output
+        let allQuestions = [];
+
+        if (assessmentData.sections) {
+          assessmentData.sections.forEach(section => {
+            const sectionQuestions = section.questions.map((q, idx) => {
+              // Find correct answer index
+              let correctIndex = -1;
+              if (q.options && q.correct_answer) {
+                correctIndex = q.options.findIndex(opt => opt === q.correct_answer || opt.startsWith(q.correct_answer));
+                // Fallback if strict match fails (sometimes AI gives "A" but option is "A. Text")
+                if (correctIndex === -1 && q.correct_answer.length === 1) {
+                  const charCode = q.correct_answer.charCodeAt(0);
+                  if (charCode >= 65 && charCode <= 68) {
+                    correctIndex = charCode - 65;
+                  }
+                }
+              }
+
+              return {
+                id: `ai-${section.section_name}-${idx}`,
+                question: q.question,
+                options: q.options || [],
+                difficulty: 'medium', // Default or derived
+                subject: section.section_name,
+                correct: correctIndex !== -1 ? correctIndex : 0, // Default to 0 if parsing fails
+                type: q.question_type
+              };
+            });
+            allQuestions = [...allQuestions, ...sectionQuestions];
+          });
+        }
+
+        // Filter for MCQs only for this interface for now
+        const mcqQuestions = allQuestions.filter(q => q.type === 'MCQ' && q.options.length > 0);
+
+        if (mcqQuestions.length > 0) {
+          setQuestions(mcqQuestions);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fallback to fetching onboarding questions
       try {
         setLoading(true);
         const data = await getOnboardingQuestions();
@@ -53,8 +101,8 @@ const AssessmentTest = () => {
       }
     };
 
-    fetchQuestions();
-  }, []);
+    initializeAssessment();
+  }, [location.state]);
 
   // Timer
   useEffect(() => {

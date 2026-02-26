@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaGraduationCap, FaSchool, FaBriefcase } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import { FaGraduationCap, FaSchool, FaBriefcase, FaLock } from 'react-icons/fa';
+
 import './Register.css';
 
 const AcademicDetails = () => {
     const navigate = useNavigate();
+    const { completeSignup } = useAuth(); // Use auth context
     const [academicType, setAcademicType] = useState(null);
+    const [loading, setLoading] = useState(false); // Add loading state
+
+    // Add password fields to form data
     const [formData, setFormData] = useState({
+        // Auth
+        password: '',
+        confirmPassword: '',
+
         // School
         schoolName: '',
         board: '',
@@ -52,6 +62,11 @@ const AcademicDetails = () => {
     };
 
     const validate = () => {
+        // Common validation
+        if (!formData.password || !formData.confirmPassword) return false;
+        if (formData.password.length < 6) return false;
+        if (formData.password !== formData.confirmPassword) return false;
+
         if (academicType === 'school') {
             return formData.schoolName && formData.board && formData.standard;
         }
@@ -64,19 +79,58 @@ const AcademicDetails = () => {
         return false;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
-        if (validate()) {
-            // Save to localStorage
-            const existingData = JSON.parse(localStorage.getItem('academicDetails')) || {};
-            localStorage.setItem('academicDetails', JSON.stringify({ ...existingData, ...formData, academicType }));
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
 
-            // Navigate to next step
-            navigate('/assessment-intro');
+        if (formData.password.length < 6) {
+            setError("Password must be at least 6 characters");
+            return;
+        }
+
+        const registrationToken = sessionStorage.getItem('registrationToken');
+        if (!registrationToken) {
+            setError("Session expired. Please verify email again.");
+            setTimeout(() => navigate('/register'), 2000);
+            return;
+        }
+
+        if (validate()) {
+            setLoading(true);
+            try {
+                // Prepare payload
+                const payload = { ...formData, academicStatus: academicType, registrationToken };
+
+                // Sanitize payload: remove empty strings that might trigger enum validation errors
+                Object.keys(payload).forEach(key => {
+                    if (payload[key] === '' || payload[key] === null) {
+                        delete payload[key];
+                    }
+                });
+
+                await completeSignup(payload);
+
+                // Clear temp storage
+                localStorage.removeItem('academicType');
+                sessionStorage.removeItem('registrationToken');
+
+                // Navigate to next step (Assessment Intro)
+                // Since completeSignup logs us in, we can access protected routes
+                navigate('/assessment-intro');
+
+            } catch (err) {
+                console.error(err);
+                setError(err.message || "Failed to create account. Please try again.");
+            } finally {
+                setLoading(false);
+            }
         } else {
-            setError('Please fill in all required fields.');
+            setError('Please fill in all required fields correctly.');
         }
     };
 
@@ -155,6 +209,11 @@ const AcademicDetails = () => {
                                 <input name="department" value={formData.department} onChange={handleChange} placeholder="e.g. Computer Science" required />
                             </div>
                             <div className="input-group">
+                                <label>Syllabus / Course Page URL</label>
+                                <input name="syllabusUrl" value={formData.syllabusUrl || ''} onChange={handleChange} placeholder="https://college.edu/syllabus.pdf" type="url" />
+                                <span style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>We'll use this to auto-generate your first assessment.</span>
+                            </div>
+                            <div className="input-group">
                                 <label>Current CGPA (Optional)</label>
                                 <input name="cgpa" value={formData.cgpa} onChange={handleChange} placeholder="e.g. 8.5" type="number" step="0.01" />
                             </div>
@@ -196,12 +255,43 @@ const AcademicDetails = () => {
                         </div>
                     )}
 
+                    {/* --- Password Creation (Common) --- */}
+                    <div className="form-section animate-fade-in" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                        <h3 style={{ fontSize: '16px', color: '#444', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <FaLock style={{ color: '#4f46e5' }} /> Set Password
+                        </h3>
+                        <div className="input-group">
+                            <label>Create Password *</label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Min 6 characters"
+                                required
+                                minLength={6}
+                            />
+                        </div>
+                        <div className="input-group">
+                            <label>Confirm Password *</label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="Re-enter password"
+                                required
+                            />
+                        </div>
+                    </div>
+
                     <button
                         type="submit"
                         className="register-button"
-                        disabled={!validate()}
+                        disabled={loading} // Validation handled in handleSubmit/validate but disable if loading
+                        style={{ marginTop: '20px' }}
                     >
-                        Continue
+                        {loading ? 'Creating Account...' : 'Complete Registration'}
                     </button>
 
                 </form>

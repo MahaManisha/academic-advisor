@@ -71,6 +71,8 @@ const Login = () => {
       ...adminCredentials,
       [e.target.name]: e.target.value,
     });
+    // ✅ NEW: Clear error when typing in admin modal
+    if (error) setError('');
   };
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
@@ -159,16 +161,17 @@ const Login = () => {
         </p>
       </div>
 
-      {/* ✨ NEW: Admin Login Modal */}
+      {/* ✨ NEW: Admin Login Modal - Render outside for better event handling */}
       {showAdminModal && (
-        <div className="modal-overlay" onClick={closeAdminModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onMouseDown={closeAdminModal}>
+          <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Admin Login</h2>
               <button
                 className="modal-close-btn"
                 onClick={closeAdminModal}
                 type="button"
+                aria-label="Close"
               >
                 <FaTimes />
               </button>
@@ -188,6 +191,7 @@ const Login = () => {
                   required
                   disabled={loading}
                   autoFocus
+                  autoComplete="email"
                 />
               </div>
 
@@ -201,6 +205,7 @@ const Login = () => {
                   onChange={handleAdminChange}
                   required
                   disabled={loading}
+                  autoComplete="current-password"
                 />
               </div>
 

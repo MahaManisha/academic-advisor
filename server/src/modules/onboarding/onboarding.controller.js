@@ -1,4 +1,5 @@
 import * as onboardingService from './onboarding.service.js';
+import * as ragService from './onboarding.rag.service.js';
 
 export const getQuestions = async (req, res) => {
     try {
@@ -32,5 +33,46 @@ export const submitOnboarding = async (req, res) => {
             message: 'Failed to submit onboarding data',
             error: error.message
         });
+    }
+};
+
+export const getAdaptiveQuestion = async (req, res) => {
+    try {
+        const { domain, difficulty, previousAnalysis } = req.body;
+        // Default difficulty if not provided is 3
+        const level = difficulty || 3;
+
+        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis);
+
+        res.status(200).json({
+            success: true,
+            question,
+            difficulty: level
+        });
+    } catch (error) {
+        console.error('Adaptive Question Generation Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to generate question', error: error.message });
+    }
+};
+
+export const evaluateAdaptiveAnswer = async (req, res) => {
+    try {
+        const { domain, question, answer } = req.body;
+
+        const evaluation = await ragService.evaluateAdaptiveAnswer(domain, question, answer);
+
+        // Dynamically adjust difficulty based on performance
+        let nextDifficulty = question.difficulty;
+        if (evaluation.score >= 0.8) nextDifficulty = Math.min(5, nextDifficulty + 1);
+        else if (evaluation.score <= 0.4) nextDifficulty = Math.max(1, nextDifficulty - 1);
+
+        res.status(200).json({
+            success: true,
+            evaluation,
+            nextDifficulty
+        });
+    } catch (error) {
+        console.error('Adaptive Evaluation Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to evaluate answer', error: error.message });
     }
 };

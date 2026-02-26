@@ -22,11 +22,11 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('connect', () => {
-        console.log('Socket connected:', newSocket.id);
+
       });
 
       newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
+
       });
 
       newSocket.on('connect_error', (error) => {

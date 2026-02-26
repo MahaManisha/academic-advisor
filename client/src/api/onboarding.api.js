@@ -21,3 +21,27 @@ export const submitOnboarding = async (data) => {
         throw error;
     }
 };
+
+export const getAdaptiveQuestion = async (domain, difficulty = null, previousAnalysis = null) => {
+    try {
+        const response = await axiosInstance.post('/onboarding/adaptive/question', {
+            domain, difficulty, previousAnalysis
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to get adaptive question:', error);
+        throw error;
+    }
+};
+
+export const evaluateAdaptiveAnswer = async (domain, question, answer) => {
+    try {
+        const response = await axiosInstance.post('/onboarding/adaptive/evaluate', {
+            domain, question, answer
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to evaluate adaptive answer:', error);
+        throw error;
+    }
+};

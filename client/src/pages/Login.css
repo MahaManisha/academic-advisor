@@ -59,9 +59,26 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .input-group {
@@ -76,7 +93,7 @@
   color: #9ca3af;
   font-size: 18px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
 }
 
 .input-group input {
@@ -90,6 +107,8 @@
   outline: none;
   background: white;
   color: #1a1a1a;
+  position: relative;
+  z-index: 2;
 }
 
 .input-group input::placeholder {
@@ -321,6 +340,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

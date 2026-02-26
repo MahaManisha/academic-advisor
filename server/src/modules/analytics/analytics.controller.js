@@ -1,6 +1,8 @@
 // server/src/modules/analytics/analytics.controller.js
 import { generateAnalytics } from "./analytics.service.js";
 import Analytics from "./analytics.model.js";
+import User from "../user/user.model.js";
+import Course from "../course/course.model.js";
 
 export const generate = async (req, res, next) => {
   try {
@@ -28,10 +30,6 @@ export const getAnalytics = async (req, res, next) => {
 // Admin Dashboard Analytics
 export const getDashboardAnalytics = async (req, res, next) => {
   try {
-    // Dynamic import to avoid circular dependency issues if any,
-    // though distinct module imports are usually fine.
-    const User = (await import("../user/user.model.js")).default;
-
     // 1. KPI Stats
     const totalUsers = await User.countDocuments({ role: 'student' });
     const activeUsers = await User.countDocuments({ role: 'student', status: 'active' });
@@ -54,8 +52,6 @@ export const getDashboardAnalytics = async (req, res, next) => {
     // But distribution is about students per course.
 
     // Total Courses (Available in system) - Fix for "Total Courses" KPI
-    // We need to import Course model dynamically or add it to imports
-    const Course = (await import("../course/course.model.js")).default;
     const totalCourses = await Course.countDocuments({ status: 'active' });
 
     const courseDistribution = await User.aggregate([

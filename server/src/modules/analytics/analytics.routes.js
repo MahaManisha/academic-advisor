@@ -12,7 +12,7 @@ import roleMiddleware from "../../middlewares/role.middleware.js";
 const router = Router();
 
 // Admin Dashboard - Protected
-router.get("/dashboard", authMiddleware, roleMiddleware(['admin']), getDashboardAnalytics);
+router.get("/dashboard", authMiddleware, roleMiddleware('admin'), getDashboardAnalytics);
 
 router.post("/:domain/generate", authMiddleware, generate);
 router.get("/", authMiddleware, getAnalytics);

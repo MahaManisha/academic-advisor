@@ -1,6 +1,16 @@
 // server/src/server.js
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/env.js"; // Must be first to load .env before other imports
+
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Debug Logging
+// Env loading moved to config/env.js
+
 
 import http from "http";
 import { Server } from "socket.io";
@@ -20,7 +30,8 @@ const server = http.createServer(app);
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
     methods: ["GET", "POST"]
   }
 });
@@ -30,5 +41,5 @@ setupSockets(io);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+
 });

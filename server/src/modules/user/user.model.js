@@ -40,14 +40,16 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["student", "admin", "trainer"],
-      default: "student"
+      default: "student",
+      index: true
     },
 
     // Academic Identity
     academicStatus: {
       type: String,
       enum: ["school", "college", "graduated"],
-      default: "college"
+      default: "college",
+      index: true
     },
 
     // 1. School Student Fields
@@ -58,6 +60,7 @@ const userSchema = new mongoose.Schema(
 
     // 2. College Student Fields
     college: { type: String, trim: true },
+    syllabusUrl: { type: String, trim: true }, // For auto-generating assessments
     degreeType: { type: String, enum: ["Diploma", "UG", "PG", "PhD"] },
     domain: { type: String, trim: true }, // Course/Major
     year: { type: Number, min: 1, max: 5 },
@@ -104,7 +107,32 @@ const userSchema = new mongoose.Schema(
     upcomingDeadlines: { type: Number, default: 0 },
 
     // Assessment Results (Simplified storage)
-    assessmentResults: { type: Object }
+    assessmentResults: { type: Object },
+
+    // Peer Connections
+    connections: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true
+        },
+        status: {
+          type: String,
+          enum: ["pending", "connected"],
+          default: "pending"
+        },
+        requestedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ]
   },
   { timestamps: true }
 );

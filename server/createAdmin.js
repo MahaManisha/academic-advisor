@@ -14,7 +14,7 @@ const createAdmin = async () => {
         }
 
         await mongoose.connect(process.env.MONGO_URI);
-        console.log("✅ Connected to MongoDB");
+
 
         const adminEmail = "admin@gmail.com";
         const adminPassword = "fake-password-change-me"; // Will be hashed
@@ -24,21 +24,36 @@ const createAdmin = async () => {
         const existingAdmin = await User.findOne({ email: adminEmail });
 
         if (existingAdmin) {
-            console.log("⚠️ Admin user already exists:");
-            console.log(`   Email: ${existingAdmin.email}`);
-            console.log(`   Role: ${existingAdmin.role}`);
 
+
+
+
+            let updated = false;
             if (existingAdmin.role !== 'admin') {
-                console.log("   Updating role to 'admin'...");
+
                 existingAdmin.role = 'admin';
+                updated = true;
+            }
+            if (!existingAdmin.emailVerified) {
+
+                existingAdmin.emailVerified = true;
+                updated = true;
+            }
+            if (!existingAdmin.onboardingCompleted) {
+
+                existingAdmin.onboardingCompleted = true;
+                updated = true;
+            }
+
+            if (updated) {
                 await existingAdmin.save();
-                console.log("✅ User role updated to admin.");
+
             } else {
-                console.log("   Role is already admin. No changes made.");
+
             }
 
         } else {
-            console.log("🔨 Creating new admin user...");
+
 
             const salt = await bcrypt.genSalt(10);
             const passwordHash = await bcrypt.hash(plainPassword, salt);
@@ -48,15 +63,17 @@ const createAdmin = async () => {
                 email: adminEmail,
                 passwordHash: passwordHash,
                 role: "admin",
-                status: "active"
+                status: "active",
+                emailVerified: true,
+                onboardingCompleted: true
             });
 
             await newAdmin.save();
-            console.log("✅ Admin user created successfully!");
-            console.log("-----------------------------------");
-            console.log(`📧 Email:    ${adminEmail}`);
-            console.log(`🔑 Password: ${plainPassword}`);
-            console.log("-----------------------------------");
+
+
+
+
+
         }
 
         process.exit(0);

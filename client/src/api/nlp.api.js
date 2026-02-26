@@ -9,3 +9,14 @@ export const analyzeCourse = async (courseName) => {
         throw error.response?.data || error.message;
     }
 };
+
+// Extract subjects from syllabus content or URL
+export const extractSubjects = async (data) => {
+    try {
+        // data can be { url: string, context: string }
+        const response = await axios.post('/nlp/extract-subjects', data);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

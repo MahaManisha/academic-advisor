@@ -1,51 +1,122 @@
+// server/src/modules/chatbot/chat.service.js
+import Groq from "groq-sdk";
 import Chat from "./chat.model.js";
 import User from "../user/user.model.js";
 
+// ── Groq client (free tier — no billing needed) ──────────────────────────────
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// Free Groq models in priority order (fallback chain)
+const GROQ_MODELS = [
+  "llama-3.3-70b-versatile",   // Best quality — 6,000 req/day free
+  "llama-3.1-8b-instant",      // Fastest — 14,400 req/day free
+  "gemma2-9b-it",              // Google Gemma — 14,400 req/day free
+  "mixtral-8x7b-32768",        // Mixtral — good reasoning
+];
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Try each model until one responds. */
+const generateWithFallback = async (messages) => {
+  let lastError = null;
+
+  for (const model of GROQ_MODELS) {
+    try {
+
+      const completion = await groq.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+      const text = completion.choices[0]?.message?.content || "";
+
+      return text;
+    } catch (err) {
+      const msg = err?.message || String(err);
+      const is429 =
+        msg.includes("429") ||
+        msg.includes("rate_limit") ||
+        msg.includes("Rate limit");
+
+      if (is429) {
+        // Extract retry delay or wait 12 s
+        const sec = (msg.match(/Please try again in (\d+(?:\.\d+)?)s/) || [])[1];
+        const wait = sec ? Math.ceil(parseFloat(sec)) + 1 : 12;
+        console.warn(`[Chatbot] ⚠️  ${model} rate-limited. Waiting ${wait}s…`);
+        await sleep(wait * 1000);
+        lastError = err;
+        continue;
+      }
+
+      // Surface any other error immediately
+      throw err;
+    }
+  }
+
+  throw lastError || new Error("All Groq models are currently unavailable.");
+};
+
+// ── Main handler ─────────────────────────────────────────────────────────────
 export const handleChat = async (userId, question) => {
-  // 1. Fetch User Context
+  // 1. Fetch Student Context
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
 
-  // 2. Generate Context-Aware Response (Rule-Based "Smart" Agent)
-  let aiResponse = "";
-  const lowerQ = question.toLowerCase();
-
-  // Context Variables
   const course = user.course || "General Studies";
-  const focus = user.focus || "Academic"; // academic, career, research
-  const style = user.learningMode || "Visual"; // visual, hands-on, theory
+  const focus = user.focus || "Academic";
+  const style = user.learningMode || "Visual";
+  const score = user.knowledgeScore || "not assessed";
 
-  // Logic Engine
-  if (lowerQ.includes('study') || lowerQ.includes('prepare') || lowerQ.includes('learn')) {
-    if (style === 'visual') {
-      aiResponse = `Since you're a **Visual Learner** studying **${course}**, I recommend starting with diagram-heavy resources. Try watching visualization videos for complex topics. Would you like me to find some video links?`;
-    } else if (style === 'hands-on') {
-      aiResponse = `For **${course}**, the best way to learn is by doing. I suggest setting up a practical project or using interactive labs. I can suggest a starter project based on your **${focus}** goals.`;
+  // 2. Build messages array (system + user)
+  const messages = [
+    {
+      role: "system",
+      content: `You are an expert AI Academic Advisor for an e-learning platform.
+
+STUDENT PROFILE:
+- Name: ${user.name || "Student"}
+- Course / Major: ${course}
+- Learning Focus: ${focus}
+- Preferred Learning Style: ${style}
+- Current Knowledge Score: ${score}
+
+INSTRUCTIONS:
+- Give personalised, actionable academic advice based on the student profile.
+- When asked for resources, provide real URLs (YouTube, GeeksForGeeks, freeCodeCamp, Khan Academy, Coursera, W3Schools, LeetCode, etc.).
+- Use markdown formatting: **bold** for key terms, bullet lists for resources, \`code\` for snippets.
+- Be concise (under 250 words) unless deep explanation is genuinely needed.
+- Be friendly, encouraging, and specific — NEVER give a generic non-answer.
+- Do NOT say you cannot browse the internet for well-known, established resources.`,
+    },
+    {
+      role: "user",
+      content: question,
+    },
+  ];
+
+  // 3. Call Groq API (with automatic model fallback)
+  let aiResponse = "";
+  try {
+    aiResponse = await generateWithFallback(messages);
+  } catch (groqErr) {
+    const errMsg = groqErr?.message || String(groqErr);
+    console.error("[Chatbot] All Groq models failed:", errMsg);
+
+    if (errMsg.includes("429") || errMsg.includes("rate_limit")) {
+      aiResponse = `⚠️ **Rate Limit Reached**\n\nThe AI service is temporarily busy. Please wait a moment and try again.\n\n*(Tip: The limit resets every minute — just send your message again in a few seconds.)*`;
     } else {
-      aiResponse = `I recommend gathering standard textbooks and research papers. Organize your notes hierarchically to master the theory of **${course}**.`;
+      aiResponse = `I'm sorry, I couldn't reach the AI service right now. Please try again in a moment.`;
     }
   }
-  else if (lowerQ.includes('job') || lowerQ.includes('career') || lowerQ.includes('internship')) {
-    if (focus === 'career') {
-      aiResponse = `Excellent focus. For a career in **${course}**, you should prioritize building a portfolio. Employers look for practical skills. Have you checked the latest industry requirements?`;
-    } else {
-      aiResponse = `Even though your focus is **${focus}**, it's good to think ahead. I suggest looking at internship roles relevant to ${course} to see what skills are in demand.`;
-    }
-  }
-  else if (lowerQ.includes('exam') || lowerQ.includes('score') || lowerQ.includes('grade')) {
-    aiResponse = `To boost your GPA in **${course}**, focus on past papers and core concepts. Since your knowledge score is around **${user.knowledgeScore || 'average'}**, I'd suggest reviewing the basics before tackling advanced problems.`;
-  }
-  else {
-    aiResponse = `I see you're asking about "${question}". As your advisor for **${course}** (Focus: ${focus}), I'm here to help. Could you be more specific so I can tailor my advice to your **${style}** learning style?`;
-  }
 
-  // 3. Save Interaction
+  // 4. Persist the conversation
   await Chat.create({ userId, role: "user", message: question });
-  await Chat.create({ userId, role: "assistant", message: aiResponse, confidenceScore: 1.0 });
+  await Chat.create({ userId, role: "assistant", message: aiResponse, confidenceScore: 0.95 });
 
   return {
     response: aiResponse,
-    confidence: 1.0,
-    contextUsed: { focus, style, course }
+    confidence: 0.95,
+    contextUsed: { focus, style, course },
   };
 };

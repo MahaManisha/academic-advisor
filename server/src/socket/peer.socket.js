@@ -4,7 +4,7 @@ import PeerChat from "../modules/peer/peerChat.model.js";
 const setupPeerSocket = (io, socket) => {
   socket.on("join-peer-room", (roomId) => {
     socket.join(roomId);
-    console.log(`Socket joined room: ${roomId}`);
+
   });
 
   socket.on("peer-message", async (data) => {

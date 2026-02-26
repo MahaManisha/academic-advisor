@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
+// dotenv is loaded in server.js entry point
 
 // Create transporter
 // Create transporter
@@ -15,22 +14,22 @@ const transporter = nodemailer.createTransport({
 });
 
 // Debug Log (Safe)
-console.log("📧 Email Service Configured:");
-console.log(`   - HOST: ${process.env.EMAIL_HOST || 'smtp.gmail.com'}`);
-console.log(`   - USER: ${process.env.EMAIL_USER || 'MISSING'}`);
-console.log(`   - PASS: ${process.env.EMAIL_PASS ? '********' : 'MISSING'}`);
+
+
+
+
 
 // Verify connection configuration
 transporter.verify(function (error, success) {
     if (error) {
         console.error("❌ Mail Server Error:", error);
     } else {
-        console.log("✅ Mail Server is ready to take our messages");
+
     }
 });
 
 export const sendOtpEmail = async (email, otp) => {
-    console.log(`📩 Attempting to send OTP to: ${email}`);
+
 
     try {
         const info = await transporter.sendMail({
@@ -53,7 +52,7 @@ export const sendOtpEmail = async (email, otp) => {
             `, // html body
         });
 
-        console.log(`✅ OTP sent successfully. Message ID: ${info.messageId}`);
+
         return true;
     } catch (error) {
         console.error("❌ Failed to send OTP email:", error);

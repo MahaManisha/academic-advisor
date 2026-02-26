@@ -13,5 +13,7 @@ const checkVerified = (req, res, next) => {
 
 router.get('/questions', protect, checkVerified, onboardingController.getQuestions);
 router.post('/submit', protect, checkVerified, onboardingController.submitOnboarding);
+router.post('/adaptive/question', protect, checkVerified, onboardingController.getAdaptiveQuestion);
+router.post('/adaptive/evaluate', protect, checkVerified, onboardingController.evaluateAdaptiveAnswer);
 
 export default router;

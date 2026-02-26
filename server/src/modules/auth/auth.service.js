@@ -101,6 +101,7 @@ export const completeRegistration = async (data) => {
 
     // 2. College
     college: data.college,
+    syllabusUrl: data.syllabusUrl, // Capture syllabus URL
     degreeType: data.degreeType,
     domain: data.domain,
     year: data.year ? Number(data.year) : undefined,
