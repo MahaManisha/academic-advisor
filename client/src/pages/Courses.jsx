@@ -82,7 +82,7 @@ const Courses = () => {
 
   const handleCourseClick = (courseId) => {
     // Navigate to course detail page
-
+    console.log("Navigating to quest:", courseId);
   };
 
   return (
@@ -96,54 +96,58 @@ const Courses = () => {
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
-        title="My Courses"
-        subtitle="Track your learning progress"
+        title="Active Missions"
+        subtitle="Review your assigned mission parameters."
       />
 
       <main className="dashboard-main">
         <div className="main-content">
           {loading ? (
-            <div className="loading-state">Loading courses...</div>
+            <div className="loading-state">
+              <div className="loader-ring"></div>
+              <span>Scanning Courses...</span>
+            </div>
           ) : (
             <>
-              <div className="stats-grid">
-                <div className="stat-card">
+              {/* Mission Intel (Stats) */}
+              <div className="stats-grid" style={{ marginBottom: '30px' }}>
+                <div className="stat-card" style={{ "--stat-color": "#667eea" }}>
                   <div className="stat-header">
-                    <div className="stat-icon" style={{ background: '#667eea' }}>
+                    <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #667eea 0%, rgba(0,0,0,0.5) 100%)', border: '1px solid #667eea' }}>
                       <FaBook />
                     </div>
                   </div>
-                  <div className="stat-label">Total Courses</div>
+                  <div className="stat-label">Total Missions</div>
                   <div className="stat-value">{stats.total}</div>
                 </div>
 
-                <div className="stat-card">
+                <div className="stat-card" style={{ "--stat-color": "#f59e0b" }}>
                   <div className="stat-header">
-                    <div className="stat-icon" style={{ background: '#f59e0b' }}>
+                    <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, rgba(0,0,0,0.5) 100%)', border: '1px solid #f59e0b' }}>
                       <FaClock />
                     </div>
                   </div>
-                  <div className="stat-label">Ongoing</div>
+                  <div className="stat-label">Active Quests</div>
                   <div className="stat-value">{stats.ongoing}</div>
                 </div>
 
-                <div className="stat-card">
+                <div className="stat-card" style={{ "--stat-color": "#10b981" }}>
                   <div className="stat-header">
-                    <div className="stat-icon" style={{ background: '#10b981' }}>
+                    <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #10b981 0%, rgba(0,0,0,0.5) 100%)', border: '1px solid #10b981' }}>
                       <FaCheckCircle />
                     </div>
                   </div>
-                  <div className="stat-label">Completed</div>
+                  <div className="stat-label">Quests Cleared</div>
                   <div className="stat-value">{stats.completed}</div>
                 </div>
 
-                <div className="stat-card">
+                <div className="stat-card" style={{ "--stat-color": "#ef4444" }}>
                   <div className="stat-header">
-                    <div className="stat-icon" style={{ background: '#ef4444' }}>
+                    <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #ef4444 0%, rgba(0,0,0,0.5) 100%)', border: '1px solid #ef4444' }}>
                       <FaChartLine />
                     </div>
                   </div>
-                  <div className="stat-label">Avg Progress</div>
+                  <div className="stat-label">Sync Rate</div>
                   <div className="stat-value">{stats.avgProgress}%</div>
                 </div>
               </div>
@@ -154,19 +158,19 @@ const Courses = () => {
                   className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
                   onClick={() => setFilter('all')}
                 >
-                  All Courses
+                  All Quests
                 </button>
                 <button
                   className={`filter-btn ${filter === 'ongoing' ? 'active' : ''}`}
                   onClick={() => setFilter('ongoing')}
                 >
-                  Ongoing
+                  Active Quests
                 </button>
                 <button
                   className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
                   onClick={() => setFilter('completed')}
                 >
-                  Completed
+                  Cleared Quests
                 </button>
               </div>
 
@@ -182,9 +186,18 @@ const Courses = () => {
                           <FaGraduationCap />
                         </div>
                       )}
+
+                      <div className="xp-reward-badge" style={{
+                        position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.7)',
+                        border: '1px solid #4facfe', color: '#4facfe', padding: '4px 10px',
+                        borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', fontFamily: 'Orbitron, sans-serif'
+                      }}>
+                        +{course.totalLessons * 10} XP
+                      </div>
+
                       {course.status === 'completed' && (
                         <div className="completed-badge">
-                          <FaCheckCircle /> Completed
+                          <FaCheckCircle /> CLEAR
                         </div>
                       )}
                     </div>
@@ -197,8 +210,8 @@ const Courses = () => {
                       <p className="course-description">{course.description}</p>
 
                       <div className="course-meta">
-                        <span className="course-difficulty badge">
-                          {course.difficulty}
+                        <span className="course-difficulty badge" style={{ background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>
+                          Lvl: {course.difficulty}
                         </span>
                         <span className="course-rating">
                           <FaStar /> {course.rating}
@@ -207,7 +220,7 @@ const Courses = () => {
 
                       <div className="course-progress-section">
                         <div className="progress-header">
-                          <span className="progress-label">Progress</span>
+                          <span className="progress-label">Sync Progress</span>
                           <span className="progress-percentage">{course.progress}%</span>
                         </div>
                         <div className="progress-bar">
@@ -217,7 +230,7 @@ const Courses = () => {
                           />
                         </div>
                         <div className="progress-lessons">
-                          {course.completedLessons}/{course.totalLessons} lessons completed
+                          {course.completedLessons}/{course.totalLessons} Objectives
                         </div>
                       </div>
 
@@ -226,10 +239,10 @@ const Courses = () => {
                         onClick={() => handleCourseClick(course.id)}
                       >
                         {course.status === 'completed' ? (
-                          'Review Course'
+                          'Review Data'
                         ) : (
                           <>
-                            <FaPlay /> Continue Learning
+                            <FaPlay style={{ fontSize: '10px' }} /> Initiate Sequence
                           </>
                         )}
                       </button>
@@ -241,8 +254,8 @@ const Courses = () => {
               {filteredCourses.length === 0 && (
                 <div className="empty-state">
                   <FaBook className="empty-icon" />
-                  <h3>No courses found</h3>
-                  <p>Try changing your filter or enroll in a new course!</p>
+                  <h3>No Quests available</h3>
+                  <p>Check back later for new mission objectives!</p>
                 </div>
               )}
             </>

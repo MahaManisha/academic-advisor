@@ -72,8 +72,15 @@ export const getOnboardingQuestions = async (userId) => {
     if (user.academicStatus === 'graduated') {
         const domain = user.learningDomain || user.course;
         subjects = LEARNING_PATH_MAP[domain] || LEARNING_PATH_MAP["default"];
+    } else if (user.academicStatus === 'school') {
+        const std = parseInt(user.standard) || 10;
+        if (std >= 11) {
+            subjects = ["Mathematics", "Physics", "Chemistry", "Biology", "Computer Science", "English"];
+        } else {
+            subjects = ["Mathematics", "Science", "Social Studies", "English", "Second Language"];
+        }
     } else {
-        // Student - Check for Syllabus URL first
+        // College Student - Check for Syllabus URL first
         if (user.syllabusUrl) {
             try {
                 // Dynamic Extraction
@@ -122,8 +129,8 @@ export const submitOnboarding = async (userId, data) => {
         { userId },
         {
             userId,
-            domain: user.course || data.course || 'Unknown',
-            year: user.year || data.year || 'Unknown',
+            domain: user.course || data.course || (user.academicStatus === 'school' ? 'School' : 'Unknown'),
+            year: user.year || data.year || user.standard || 'Unknown',
             subjects: data.subjects,
             interests: data.interests,
             careerGoal: data.careerGoal,

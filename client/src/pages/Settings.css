@@ -1,5 +1,4 @@
 /* client/src/pages/Settings.css */
-
 .settings-container {
   display: grid;
   grid-template-columns: 250px 1fr;
@@ -21,27 +20,33 @@
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #6b7280;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 204, 0.3);
+  border-radius: 12px;
+  font-family: var(--game-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--game-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: left;
+  letter-spacing: 1px;
 }
 
 .settings-nav-item:hover {
-  border-color: #667eea;
-  color: #667eea;
-  background: #f9fafb;
+  border-color: var(--game-neon-blue);
+  color: var(--game-text-primary);
+  background: rgba(0, 255, 204, 0.05);
+  box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.1);
+  transform: translateX(4px);
 }
 
 .settings-nav-item.active {
-  background: #667eea;
-  border-color: #667eea;
-  color: white;
+  background: rgba(0, 255, 204, 0.1);
+  border-color: var(--game-neon-blue);
+  color: var(--game-neon-blue);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
 }
 
 .settings-nav-item svg {
@@ -49,11 +54,13 @@
 }
 
 .settings-content {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--game-bg-panel);
+  border: 1px solid var(--game-border-color);
+  border-radius: 16px;
   padding: 32px;
   min-height: 500px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 255, 204, 0.05);
 }
 
 .settings-section {
@@ -65,6 +72,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -72,12 +80,15 @@
 }
 
 .settings-title {
+  font-family: var(--game-font-display);
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-neon-pink);
   margin: 0 0 32px 0;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f3f4f6;
+  border-bottom: 1px solid rgba(255, 0, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .setting-group {
@@ -86,35 +97,43 @@
 
 .setting-label {
   display: block;
-  font-size: 14px;
+  font-family: var(--game-font-display);
+  font-size: 12px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-text-primary);
   margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .setting-select {
   width: 100%;
   max-width: 400px;
   padding: 12px 16px;
-  border: 2px solid #e5e7eb;
+  border: 1px solid rgba(0, 255, 204, 0.3);
   border-radius: 8px;
+  font-family: var(--game-font-main);
   font-size: 15px;
-  background: white;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--game-text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.setting-select option {
+  background: var(--game-bg-panel);
 }
 
 .setting-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--game-neon-blue);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+  background: rgba(0, 255, 204, 0.05);
 }
 
 .setting-description {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--game-text-muted);
   margin: 8px 0 0 0;
 }
 
@@ -123,8 +142,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background: #f9fafb;
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   margin-bottom: 16px;
 }
 
@@ -133,15 +153,17 @@
 }
 
 .toggle-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-family: var(--game-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--game-text-primary);
   margin-bottom: 4px;
+  letter-spacing: 1px;
 }
 
 .toggle-description {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--game-text-muted);
 }
 
 .toggle-switch {
@@ -165,9 +187,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #d1d5db;
+  background-color: rgba(255, 255, 255, 0.2);
   transition: 0.3s;
   border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .toggle-slider:before {
@@ -176,18 +199,21 @@
   height: 20px;
   width: 20px;
   left: 4px;
-  bottom: 4px;
-  background-color: white;
+  bottom: 3px;
+  background-color: var(--game-text-muted);
   transition: 0.3s;
   border-radius: 50%;
 }
 
-input:checked + .toggle-slider {
-  background-color: #667eea;
+input:checked+.toggle-slider {
+  background-color: rgba(0, 255, 204, 0.2);
+  border-color: var(--game-neon-blue);
 }
 
-input:checked + .toggle-slider:before {
+input:checked+.toggle-slider:before {
   transform: translateX(24px);
+  background-color: var(--game-neon-blue);
+  box-shadow: 0 0 10px var(--game-neon-blue);
 }
 
 .theme-options {
@@ -198,42 +224,51 @@ input:checked + .toggle-slider:before {
 .theme-btn {
   flex: 1;
   padding: 12px 24px;
-  background: white;
-  border: 2px solid #e5e7eb;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--game-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .theme-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--game-neon-blue);
+  color: var(--game-text-primary);
+  background: rgba(0, 255, 204, 0.05);
 }
 
 .theme-btn.active {
-  background: #667eea;
-  border-color: #667eea;
-  color: white;
+  background: rgba(0, 255, 204, 0.1);
+  border-color: var(--game-neon-blue);
+  color: var(--game-neon-blue);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
 }
 
 .btn-danger {
   padding: 12px 24px;
-  background: white;
-  border: 2px solid #ef4444;
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px solid #ff0055;
   border-radius: 8px;
+  font-family: var(--game-font-display);
   font-size: 14px;
-  font-weight: 600;
-  color: #ef4444;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ff0055;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
-  background: #ef4444;
-  color: white;
+  background: #ff0055;
+  color: var(--game-bg-main);
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
   transform: translateY(-2px);
 }
 
@@ -243,7 +278,7 @@ input:checked + .toggle-slider:before {
   gap: 16px;
   margin-top: 40px;
   padding-top: 24px;
-  border-top: 2px solid #f3f4f6;
+  border-top: 1px solid rgba(0, 255, 204, 0.2);
 }
 
 .btn-save-settings {
@@ -251,26 +286,35 @@ input:checked + .toggle-slider:before {
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+  background: rgba(0, 255, 204, 0.1);
+  color: var(--game-neon-blue);
+  border: 1px solid var(--game-neon-blue);
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-save-settings:hover {
+  background: var(--game-neon-blue);
+  color: var(--game-bg-main);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .save-success {
-  color: #10b981;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--game-neon-green);
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   animation: fadeIn 0.3s ease;
+  text-shadow: 0 0 5px var(--game-neon-green);
 }
 
 @media (max-width: 968px) {
@@ -282,6 +326,7 @@ input:checked + .toggle-slider:before {
     position: static;
     flex-direction: row;
     overflow-x: auto;
+    padding-bottom: 10px;
   }
 
   .settings-nav-item {

@@ -100,13 +100,13 @@ const Sidebar = ({ isOpen, onClose, user }) => {
           <div className="sidebar-user">
             <div className="user-avatar">
               {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} />
+                <img src={user.avatar} alt={user.fullName || user.name} />
               ) : (
-                getInitials(user?.name || 'User')
+                getInitials(user?.fullName || user?.name || 'User')
               )}
             </div>
             <div className="user-info">
-              <div className="user-name">{user?.name || 'Guest User'}</div>
+              <div className="user-name">{user?.fullName || user?.name || 'Guest User'}</div>
               <div className="user-role">
                 {isAdmin ? (
                   <>

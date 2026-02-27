@@ -14,19 +14,24 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+  background: rgba(0, 255, 204, 0.1);
+  color: var(--game-neon-blue);
+  border: 1px solid var(--game-neon-blue);
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-add-task:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: var(--game-neon-blue);
+  color: var(--game-bg-main);
+  box-shadow: var(--game-glow-hover);
 }
 
 .filter-group {
@@ -37,39 +42,52 @@
 
 .filter-icon {
   font-size: 18px;
-  color: #6b7280;
+  color: var(--game-neon-pink);
 }
 
 .filter-select {
   padding: 10px 16px;
-  border: 1.5px solid #e5e7eb;
+  border: 1px solid var(--game-border-color);
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  background: white;
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--game-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-select option {
+  background: var(--game-bg-panel);
+  color: var(--game-text-primary);
 }
 
 .filter-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--game-neon-pink);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
 }
 
 .add-task-form {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: rgba(13, 17, 23, 0.8);
+  border: 1px solid var(--game-border-color);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
+  backdrop-filter: blur(10px);
 }
 
 .add-task-form h3 {
-  font-size: 18px;
+  font-family: var(--game-font-display);
+  font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-neon-pink);
   margin: 0 0 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .form-grid {
@@ -82,17 +100,25 @@
 .form-input,
 .form-select {
   padding: 12px 16px;
-  border: 1.5px solid #e5e7eb;
+  border: 1px solid var(--game-border-color);
   border-radius: 8px;
+  font-family: var(--game-font-main);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--game-text-primary);
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-select option {
+  background: var(--game-bg-panel);
 }
 
 .form-input:focus,
 .form-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--game-neon-blue);
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+  background: rgba(0, 255, 204, 0.05);
 }
 
 .form-actions {
@@ -102,36 +128,44 @@
 
 .btn-save {
   padding: 10px 24px;
-  background: #10b981;
-  color: white;
-  border: none;
+  background: rgba(0, 255, 102, 0.1);
+  color: var(--game-neon-green);
+  border: 1px solid var(--game-neon-green);
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-save:hover {
-  background: #059669;
+  background: var(--game-neon-green);
+  color: var(--game-bg-main);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
   transform: translateY(-2px);
 }
 
 .btn-cancel {
   padding: 10px 24px;
-  background: white;
-  color: #6b7280;
-  border: 1.5px solid #e5e7eb;
+  background: transparent;
+  color: var(--game-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-cancel:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .tasks-list {
@@ -145,30 +179,34 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--game-bg-panel);
+  border: 1px solid var(--game-border-color);
   border-radius: 12px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
 }
 
 .task-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--game-glow);
   transform: translateX(4px);
+  border-color: var(--game-neon-blue);
 }
 
 .task-item.completed {
-  opacity: 0.6;
+  opacity: 0.5;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .task-item.completed .task-title {
   text-decoration: line-through;
+  color: var(--game-text-muted);
 }
 
 .task-checkbox input[type="checkbox"] {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: var(--game-neon-blue);
 }
 
 .task-content {
@@ -176,10 +214,12 @@
 }
 
 .task-title {
+  font-family: var(--game-font-display);
   font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 700;
+  color: var(--game-text-primary);
   margin: 0 0 8px 0;
+  letter-spacing: 1px;
 }
 
 .task-meta {
@@ -195,36 +235,47 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
+  font-family: var(--game-font-main);
+  font-size: 12px;
+  color: var(--game-text-muted);
 }
 
 .task-subject {
-  color: #667eea;
+  color: var(--game-neon-blue);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .priority-badge {
-  padding: 6px 14px;
+  padding: 4px 12px;
   border-radius: 12px;
-  font-size: 12px;
+  font-family: var(--game-font-display);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .priority-badge.high {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(255, 0, 85, 0.1);
+  color: #ff0055;
+  border: 1px solid #ff0055;
+  box-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
 }
 
 .priority-badge.medium {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  border: 1px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
 
 .priority-badge.low {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(0, 255, 102, 0.1);
+  color: var(--game-neon-green);
+  border: 1px solid var(--game-neon-green);
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
 }
 
 .task-actions {
@@ -235,27 +286,31 @@
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: white;
-  border: 2px dashed #e5e7eb;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
   border-radius: 12px;
 }
 
 .empty-icon {
   font-size: 64px;
-  color: #d1d5db;
+  color: rgba(255, 255, 255, 0.1);
   margin-bottom: 16px;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.2));
 }
 
 .empty-state h3 {
+  font-family: var(--game-font-display);
   font-size: 20px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-text-primary);
   margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .empty-state p {
-  font-size: 15px;
-  color: #6b7280;
+  font-size: 14px;
+  color: var(--game-text-muted);
   margin: 0;
 }
 

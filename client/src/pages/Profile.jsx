@@ -124,13 +124,22 @@ const Profile = () => {
                   {!isEditing ? (
                     <>
                       <h2 className="profile-name">{user?.name}</h2>
-                      {/* Only render Course/Year if they exist */}
-                      {(user?.course || user?.year) && (
+                      {/* Render School Info if School Student */}
+                      {user?.academicStatus === 'school' ? (
                         <p className="profile-role">
-                          {user?.course}
-                          {user?.course && user?.year && ' • '}
-                          {user?.year}
+                          {user?.schoolName}
+                          {user?.schoolName && user?.standard && ' • '}
+                          {user?.standard}
                         </p>
+                      ) : (
+                        /* Only render Course/Year if they exist */
+                        (user?.course || user?.year) && (
+                          <p className="profile-role">
+                            {user?.course}
+                            {user?.course && user?.year && ' • '}
+                            {user?.year}
+                          </p>
+                        )
                       )}
                       {user?.studentId && <p className="profile-id">ID: {user?.studentId}</p>}
                     </>

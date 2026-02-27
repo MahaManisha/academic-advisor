@@ -103,8 +103,39 @@ const AcademicDetails = () => {
         if (validate()) {
             setLoading(true);
             try {
-                // Prepare payload
-                const payload = { ...formData, academicStatus: academicType, registrationToken };
+                // Prepare payload based on academic status to match user schema
+                let payload = {
+                    password: formData.password,
+                    academicStatus: academicType,
+                    registrationToken
+                };
+
+                if (academicType === 'school') {
+                    payload = {
+                        ...payload,
+                        schoolName: formData.schoolName,
+                        educationBoard: formData.board,
+                        standard: formData.standard
+                    };
+                } else if (academicType === 'college') {
+                    payload = {
+                        ...payload,
+                        college: formData.collegeName,
+                        degreeType: formData.degree,
+                        domain: formData.department, // mapped to domain in model
+                        year: formData.year,
+                        syllabusUrl: formData.syllabusUrl,
+                        cgpa: formData.cgpa
+                    };
+                } else if (academicType === 'graduate') {
+                    payload = {
+                        ...payload,
+                        qualification: formData.qualification,
+                        skills: formData.domainKnowledge, // mapped to skills in model
+                        fieldOfStudy: formData.interestToLearn, // mapped to fieldOfStudy
+                        careerInterest: formData.careerGoal, // mapped to careerInterest
+                    };
+                }
 
                 // Sanitize payload: remove empty strings that might trigger enum validation errors
                 Object.keys(payload).forEach(key => {
@@ -136,7 +167,7 @@ const AcademicDetails = () => {
 
     // Options
     const boards = ["State Board", "CBSE", "ICSE", "Other"];
-    const standards = ["6", "7", "8", "9", "10", "11", "12"];
+    const standards = ["6th", "7th", "8th", "9th", "10th", "11th", "12th"];
     const degrees = ["B.E", "B.Tech", "B.Sc", "B.Com", "B.A", "Diploma", "M.E", "M.Tech", "MBA", "MCA"];
     const years = ["1", "2", "3", "4", "5"];
     const domains = ["Software Development", "Data Science", "AI/ML", "Cyber Security", "Finance", "Marketing", "Core Engineering", "Design"];

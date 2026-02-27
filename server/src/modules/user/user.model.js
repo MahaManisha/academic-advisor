@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
     // 2. College Student Fields
     college: { type: String, trim: true },
     syllabusUrl: { type: String, trim: true }, // For auto-generating assessments
-    degreeType: { type: String, enum: ["Diploma", "UG", "PG", "PhD"] },
+    degreeType: { type: String },
     domain: { type: String, trim: true }, // Course/Major
     year: { type: Number, min: 1, max: 5 },
     areaOfInterest: [{ type: String }], // Multi-select

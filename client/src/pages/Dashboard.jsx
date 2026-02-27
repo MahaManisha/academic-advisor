@@ -156,7 +156,7 @@ const Dashboard = () => {
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
-        title={`Welcome back, ${user?.name?.split(' ')[0] || 'Student'}!`}
+        title={`Welcome back, ${(user?.fullName || user?.name)?.split(' ')[0] || 'Student'}!`}
         subtitle="Here's your academic overview"
         notificationCount={userStats.upcomingDeadlines}
       />
@@ -167,7 +167,7 @@ const Dashboard = () => {
           <div className="welcome-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <div className="welcome-banner-content" style={{ flex: 1, minWidth: 250 }}>
               <h2 className="welcome-banner-title">
-                🕹️ Player Hub: Welcome {user?.name?.split(' ')[0]}!
+                🕹️ Player Hub: Welcome {(user?.fullName || user?.name)?.split(' ')[0] || 'Student'}!
               </h2>
               <div className="personalization-tags" style={{ display: 'flex', gap: '12px', margin: '12px 0' }}>
                 {user?.focus && (
@@ -182,7 +182,7 @@ const Dashboard = () => {
                 )}
               </div>
               <p className="welcome-banner-text">
-                Your mission parameters are set for <strong>{user?.course || 'General'}</strong>.
+                Your mission parameters are set for <strong>{user?.course || user?.standard || 'General'}</strong>.
                 Ready to level up your {user?.focus || 'academic'} stats?
               </p>
             </div>

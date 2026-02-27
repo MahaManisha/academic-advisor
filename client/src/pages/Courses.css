@@ -1,5 +1,4 @@
 /* client/src/pages/Courses.css */
-
 .courses-filter {
   display: flex;
   gap: 12px;
@@ -8,25 +7,30 @@
 
 .filter-btn {
   padding: 10px 24px;
-  background: white;
-  border: 2px solid #e5e7eb;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 204, 0.3);
   border-radius: 8px;
+  font-family: var(--game-font-display);
   font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--game-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
 }
 
 .filter-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--game-neon-blue);
+  color: var(--game-text-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
 }
 
 .filter-btn.active {
-  background: #667eea;
-  border-color: #667eea;
-  color: white;
+  background: rgba(0, 255, 204, 0.1);
+  border-color: var(--game-neon-blue);
+  color: var(--game-neon-blue);
+  box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.2);
 }
 
 .courses-grid {
@@ -36,30 +40,34 @@
 }
 
 .course-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--game-bg-panel);
+  border: 1px solid var(--game-border-color);
+  border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .course-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--game-glow);
   transform: translateY(-4px);
+  border-color: var(--game-neon-blue);
 }
 
 .course-thumbnail {
   position: relative;
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--game-neon-blue) 0%, var(--game-neon-pink) 100%);
   overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 .course-thumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  mix-blend-mode: overlay;
 }
 
 .thumbnail-placeholder {
@@ -69,7 +77,8 @@
   align-items: center;
   justify-content: center;
   font-size: 72px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--game-bg-main);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .completed-badge {
@@ -80,11 +89,17 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: #10b981;
-  color: white;
+  background: rgba(0, 255, 102, 0.2);
+  color: var(--game-neon-green);
+  border: 1px solid var(--game-neon-green);
   border-radius: 20px;
-  font-size: 12px;
+  font-family: var(--game-font-display);
+  font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
 }
 
 .course-content {
@@ -92,26 +107,30 @@
 }
 
 .course-title {
+  font-family: var(--game-font-display);
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-text-primary);
   margin: 0 0 8px 0;
   line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .course-instructor {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-family: var(--game-font-main);
   font-size: 14px;
-  color: #667eea;
+  color: var(--game-neon-blue);
   font-weight: 600;
   margin: 0 0 12px 0;
 }
 
 .course-description {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--game-text-muted);
   line-height: 1.6;
   margin: 0 0 16px 0;
 }
@@ -127,20 +146,25 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 12px;
+  color: var(--game-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .course-rating {
-  color: #f59e0b;
+  color: #ffd700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
 }
 
 .course-progress-section {
   margin-bottom: 20px;
   padding: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 204, 0.1);
+  border-radius: 12px;
 }
 
 .progress-header {
@@ -151,23 +175,26 @@
 }
 
 .progress-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
+  font-family: var(--game-font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--game-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .progress-percentage {
+  font-family: var(--game-font-display);
   font-size: 16px;
   font-weight: 700;
-  color: #667eea;
+  color: var(--game-neon-blue);
+  text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
-  background: #e5e7eb;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -175,15 +202,18 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: var(--game-neon-blue);
+  box-shadow: 0 0 10px var(--game-neon-blue);
   border-radius: 10px;
   transition: width 0.3s ease;
 }
 
 .progress-lessons {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--game-text-muted);
   text-align: right;
+  font-family: var(--game-font-display);
+  letter-spacing: 1px;
 }
 
 .btn-continue {
@@ -193,46 +223,98 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+  background: rgba(0, 255, 204, 0.1);
+  color: var(--game-neon-blue);
+  border: 1px solid var(--game-neon-blue);
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--game-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-continue:hover {
+  background: var(--game-neon-blue);
+  color: var(--game-bg-main);
+  box-shadow: var(--game-glow-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: white;
-  border: 2px dashed #e5e7eb;
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
 .empty-icon {
   font-size: 64px;
-  color: #d1d5db;
+  color: rgba(255, 255, 255, 0.1);
   margin-bottom: 16px;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.2));
 }
 
 .empty-state h3 {
+  font-family: var(--game-font-display);
   font-size: 20px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--game-text-primary);
   margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .empty-state p {
-  font-size: 15px;
-  color: #6b7280;
+  font-size: 14px;
+  color: var(--game-text-muted);
   margin: 0;
+}
+
+.loader-ring {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--game-border-color);
+  border-top-color: var(--game-neon-blue);
+  border-radius: 50%;
+  animation: scan 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes scan {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-family: var(--game-font-display);
+  color: var(--game-neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: pulseOpacity 1.5s infinite alternate;
+}
+
+@keyframes pulseOpacity {
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 968px) {
