@@ -24,9 +24,11 @@ import {
   respondToRequest,
   getChatMessages
 } from '../api/peer.api';
+import { useGamification } from '../context/GamificationContext';
 
 const PeerChat = () => {
   const { user, logout } = useAuth();
+  const { triggerAction } = useGamification();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPeer, setSelectedPeer] = useState(null);
@@ -214,6 +216,9 @@ const PeerChat = () => {
       message: message.trim()
     });
 
+    // Gamification trigger (Backend handles deduplication logic or just rewards 5 XP per message)
+    triggerAction('CHAT_SESSION');
+
     // Stop typing on send
     socketService.emitStopTyping({ roomId, userId: user._id });
     setAllSeen(false);
@@ -396,8 +401,8 @@ const PeerChat = () => {
                         {getInitials(peer.fullName)}
                         <FaCircle
                           className={`status-indicator ${peer.connectionStatus === 'connected' && onlineUsers.has(peer._id)
-                              ? 'online'
-                              : 'offline'
+                            ? 'online'
+                            : 'offline'
                             }`}
                         />
                       </div>

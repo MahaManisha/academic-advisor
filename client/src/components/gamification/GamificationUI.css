@@ -1,0 +1,312 @@
+/* client/src/components/gamification/GamificationUI.css */
+
+/* Global Variables for Gamification */
+:root {
+  --g-neon-blue: #00f2fe;
+  --g-neon-purple: #4facfe;
+  --g-neon-green: #00e676;
+  --g-neon-gold: #ffd700;
+  --g-dark-glass: rgba(15, 23, 42, 0.7);
+  --g-darker-glass: rgba(15, 23, 42, 0.9);
+  --g-glow: 0 0 15px rgba(0, 242, 254, 0.5);
+  --g-glow-gold: 0 0 15px rgba(255, 215, 0, 0.6);
+  --g-transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.8);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  }
+}
+
+@keyframes floatXP {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    text-shadow: var(--g-glow-gold);
+  }
+
+  100% {
+    transform: translateY(-30px) scale(1.2);
+    opacity: 0;
+    text-shadow: var(--g-glow-gold);
+  }
+}
+
+@keyframes popScale {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Base Glass Container */
+.g-glass-card {
+  background: var(--g-dark-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: white;
+}
+
+.g-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--g-glow);
+  border-color: rgba(0, 242, 254, 0.5);
+}
+
+/* XP Bar */
+.g-xp-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.g-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--g-neon-purple), var(--g-neon-blue));
+  transition: width 0.8s ease-out;
+  border-radius: 4px;
+}
+
+.g-xp-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.g-xp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #a0aec0;
+}
+
+/* Level Badge */
+.g-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a202c, #2d3748);
+  border: 2px solid var(--g-neon-blue);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: var(--g-glow);
+  position: relative;
+}
+
+.g-level-badge::before {
+  content: 'LVL';
+  position: absolute;
+  top: -8px;
+  background: var(--g-neon-blue);
+  color: #1a202c;
+  font-size: 0.5rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+}
+
+/* Streak Indicator */
+.g-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  font-weight: 600;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.g-streak.active {
+  animation: pulseGlow 2s infinite;
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+/* Floating XP Text */
+.g-floating-xp {
+  position: absolute;
+  color: var(--g-neon-gold);
+  font-weight: 800;
+  font-size: 1.5rem;
+  animation: floatXP 1s forwards;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Achievement Popup Wrapper */
+.g-achievement-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.g-achievement-popup {
+  background: linear-gradient(135deg, var(--g-darker-glass), #1a202c);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--g-neon-gold);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--g-glow-gold);
+  animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: white;
+  pointer-events: auto;
+}
+
+.g-achievement-icon {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--g-neon-gold);
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+}
+
+.g-achievement-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: var(--g-neon-gold);
+}
+
+.g-achievement-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+}
+
+/* Level Up Modal */
+.g-level-up-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.g-level-up-modal {
+  text-align: center;
+  padding: 40px;
+  border-radius: 24px;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+  border: 2px solid var(--g-neon-blue);
+  box-shadow: 0 0 40px rgba(0, 242, 254, 0.4);
+  animation: popScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.g-level-up-title {
+  font-size: 2.5rem;
+  background: linear-gradient(to right, var(--g-neon-blue), var(--g-neon-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.g-level-bignum {
+  font-size: 5rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 20px var(--g-neon-blue);
+  margin: 0 0 20px 0;
+}
+
+.g-level-btn {
+  background: linear-gradient(135deg, var(--g-neon-purple), var(--g-neon-blue));
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--g-transition);
+}
+
+.g-level-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
+}
+
+/* Avatar Card Mini */
+.g-avatar-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.g-avatar-info {
+  flex: 1;
+}
+
+.g-avatar-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}

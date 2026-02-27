@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaClock, FaCheckCircle, FaTimesCircle, FaFire } from 'react-icons/fa';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { getOnboardingQuestions } from '../api/assessment.api';
+import { useGamification } from '../context/GamificationContext';
 import './AssessmentTest.css';
 
 const AssessmentTest = () => {
@@ -24,6 +26,12 @@ const AssessmentTest = () => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Gamification State
+  const { triggerAction } = useGamification();
+  const [combo, setCombo] = useState(0);
+  const [sessionXP, setSessionXP] = useState(0);
+  const [floatingXP, setFloatingXP] = useState(null);
 
   // Fetch dynamic questions or use passed assessment
   useEffect(() => {
@@ -121,7 +129,28 @@ const AssessmentTest = () => {
   };
 
   const handleAnswerSelect = (questionId, optionIndex) => {
+    // Only allow answer if not yet answered
+    if (answers[questionId] !== undefined) return;
+
     setAnswers({ ...answers, [questionId]: optionIndex });
+
+    // Evaluate correctness
+    const q = questions.find(q => q.id === questionId);
+    if (q.correct === optionIndex) {
+      let xpReward = 10;
+      let newCombo = combo + 1;
+      if (newCombo >= 3) {
+        xpReward += 20; // combo bonus
+      }
+      setCombo(newCombo);
+      setSessionXP(prev => prev + xpReward);
+      triggerAction('CORRECT_ANSWER', xpReward);
+
+      setFloatingXP(`+${xpReward} XP ${newCombo >= 3 ? 'Combo!' : ''}`);
+      setTimeout(() => setFloatingXP(null), 1500);
+    } else {
+      setCombo(0);
+    }
   };
 
   const handleNext = () => {
@@ -194,6 +223,10 @@ const AssessmentTest = () => {
     const testResults = calculateResults();
     setResults(testResults);
     setShowResults(true);
+
+    // Final completion reward
+    triggerAction('ASSESSMENT_COMPLETE');
+    setSessionXP(prev => prev + 50); // Add 50 for completing
 
     // Save assessment results to user profile
     const assessmentData = {
@@ -275,7 +308,23 @@ const AssessmentTest = () => {
             <div className="score-details">
               <p>{results.totalScore} out of {results.totalQuestions} correct</p>
               <div className="proficiency-badge">{results.proficiencyLevel}</div>
+              <div className="xp-gained-box mt-4">
+                + {sessionXP} XP Earned!
+              </div>
             </div>
+          </div>
+
+          <div style={{ width: '100%', height: 300, margin: '20px 0' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={Object.entries(results.subjectScores).map(([sub, d]) => ({
+                subject: sub, value: Math.round((d.correct / d.total) * 100), fullMark: 100
+              }))}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                <Radar name="Performance" dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="results-breakdown">
@@ -360,20 +409,38 @@ const AssessmentTest = () => {
           </div>
         </div>
 
-        <div className="question-section">
-          <h3 className="question-text">{currentQ.question}</h3>
+        <div className="question-section" style={{ position: 'relative' }}>
+          {floatingXP && <div className="g-floating-xp" style={{ top: -20, right: 20 }}>{floatingXP}</div>}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="question-text">{currentQ.question}</h3>
+            {combo >= 3 && <div className="combo-text"><FaFire /> {combo} Combo!</div>}
+          </div>
           <div className="options-list">
-            {currentQ.options.map((option, index) => (
-              <button
-                key={index}
-                className={`option-button ${answers[currentQ.id] === index ? 'selected' : ''}`}
-                onClick={() => handleAnswerSelect(currentQ.id, index)}
-              >
-                <span className="option-letter">{String.fromCharCode(65 + index)}</span>
-                <span className="option-text">{option}</span>
-                {answers[currentQ.id] === index && <FaCheckCircle className="option-check" />}
-              </button>
-            ))}
+            {currentQ.options.map((option, index) => {
+              const answered = answers[currentQ.id] !== undefined;
+              const isSelected = answers[currentQ.id] === index;
+              const isCorrectOpt = index === currentQ.correct;
+
+              let btnClass = 'option-button';
+              if (answered) {
+                if (isCorrectOpt) btnClass += ' correct-glow selected';
+                else if (isSelected) btnClass += ' incorrect-glow selected';
+              }
+
+              return (
+                <button
+                  key={index}
+                  className={btnClass}
+                  onClick={() => handleAnswerSelect(currentQ.id, index)}
+                  disabled={answered}
+                >
+                  <span className="option-letter">{String.fromCharCode(65 + index)}</span>
+                  <span className="option-text">{option}</span>
+                  {answered && isCorrectOpt && <FaCheckCircle className="option-check" style={{ color: '#00e676' }} />}
+                  {answered && isSelected && !isCorrectOpt && <FaTimesCircle className="option-check" style={{ color: '#ff3366' }} />}
+                </button>
+              )
+            })}
           </div>
         </div>
 

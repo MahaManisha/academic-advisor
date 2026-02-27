@@ -13,14 +13,24 @@ import {
   FaClock,
   FaTasks,
   FaArrowUp,
-  FaPlus
+  FaPlus,
+  FaMedal
 } from 'react-icons/fa';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { useGamification } from '../context/GamificationContext';
+import { AvatarCard } from '../components/gamification/AvatarCard';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const { badges } = useGamification();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Fallback radar chart data
+  const radarData = user?.strengths?.map(s => ({ subject: s, value: 90, fullMark: 100 })) || [];
+  const weakData = user?.weaknesses?.map(w => ({ subject: w, value: 40, fullMark: 100 })) || [];
+  const skillData = [...radarData, ...weakData];
 
   // Use actual user data - all stats start at 0 for new users
   const userStats = {
@@ -82,21 +92,23 @@ const Dashboard = () => {
   const cards = [
     {
       id: 1,
-      title: 'Assessments',
+      title: 'Missions / Quests',
       description: 'Track your academic performance and progress',
       icon: <FaChartLine />,
-      color: '#667eea',
+      color: '#00ffcc',
+      rgb: '0, 255, 204',
       stats: userStats.assessmentsPending > 0
         ? `${userStats.assessmentsPending} pending`
-        : 'No assessments yet',
+        : 'No quests yet',
       path: '/assessments',
     },
     {
       id: 2,
-      title: 'Study Planner',
+      title: 'Strategy Guide',
       description: 'Plan and organize your study schedule',
       icon: <FaCalendarAlt />,
-      color: '#f093fb',
+      color: '#ff00ff',
+      rgb: '255, 0, 255',
       stats: userStats.upcomingDeadlines > 0
         ? `${userStats.upcomingDeadlines} upcoming deadlines`
         : 'No tasks scheduled',
@@ -104,19 +116,21 @@ const Dashboard = () => {
     },
     {
       id: 3,
-      title: 'AI Advisor',
+      title: 'AI Companion',
       description: 'Get personalized academic guidance',
       icon: <FaRobot />,
       color: '#4facfe',
+      rgb: '79, 172, 254',
       stats: 'Available 24/7',
       path: '/advisor-chat',
     },
     {
       id: 4,
-      title: 'Peer Chat',
+      title: 'Guild / Co-op',
       description: 'Connect and collaborate with peers',
       icon: <FaUsers />,
-      color: '#43e97b',
+      color: '#00ff66',
+      rgb: '0, 255, 102',
       stats: 'Connect with peers',
       path: '/peer-chat',
     },
@@ -150,27 +164,30 @@ const Dashboard = () => {
       <main className="dashboard-main">
         <div className="main-content">
           {/* Welcome Banner */}
-          <div className="welcome-banner">
-            <div className="welcome-banner-content">
+          <div className="welcome-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="welcome-banner-content" style={{ flex: 1, minWidth: 250 }}>
               <h2 className="welcome-banner-title">
-                🎉 Welcome back, {user?.name?.split(' ')[0]}!
+                🕹️ Player Hub: Welcome {user?.name?.split(' ')[0]}!
               </h2>
-              <div className="personalization-tags" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+              <div className="personalization-tags" style={{ display: 'flex', gap: '12px', margin: '12px 0' }}>
                 {user?.focus && (
-                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '14px' }}>
-                    🎯 Focus: {user.focus.charAt(0).toUpperCase() + user.focus.slice(1)}
+                  <span>
+                    🎯 Class/Focus: {user.focus.charAt(0).toUpperCase() + user.focus.slice(1)}
                   </span>
                 )}
                 {user?.learningMode && (
-                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '14px' }}>
-                    🧠 Style: {user.learningMode.charAt(0).toUpperCase() + user.learningMode.slice(1)}
+                  <span>
+                    🧠 Playstyle: {user.learningMode.charAt(0).toUpperCase() + user.learningMode.slice(1)}
                   </span>
                 )}
               </div>
-              <p className="welcome-banner-text" style={{ marginTop: '12px' }}>
-                Your dashboard is optimized for <strong>{user?.course || 'General'}</strong>.
-                Ready to continue your {user?.focus || 'academic'} journey?
+              <p className="welcome-banner-text">
+                Your mission parameters are set for <strong>{user?.course || 'General'}</strong>.
+                Ready to level up your {user?.focus || 'academic'} stats?
               </p>
+            </div>
+            <div style={{ minWidth: 300, padding: 10 }}>
+              <AvatarCard />
             </div>
           </div>
 
@@ -178,9 +195,9 @@ const Dashboard = () => {
           {!isNewUser ? (
             <div className="stats-grid">
               {quickStats.map((stat) => (
-                <div key={stat.id} className="stat-card">
+                <div key={stat.id} className="stat-card" style={{ "--stat-color": stat.color }}>
                   <div className="stat-header">
-                    <div className="stat-icon" style={{ background: stat.color }}>
+                    <div className="stat-icon" style={{ background: `linear-gradient(135deg, ${stat.color} 0%, rgba(0,0,0,0.5) 100%)`, border: `1px solid ${stat.color}` }}>
                       {stat.icon}
                     </div>
                     {stat.trend && (
@@ -193,7 +210,7 @@ const Dashboard = () => {
                   <div className="stat-label">{stat.label}</div>
                   <div className="stat-value">
                     {stat.value}
-                    <span style={{ fontSize: '16px', fontWeight: 500, marginLeft: '4px', color: '#6b7280' }}>
+                    <span>
                       {stat.unit}
                     </span>
                   </div>
@@ -210,15 +227,56 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="content-section">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '24px' }}>
+            {/* Achievement Showcase */}
+            <div className="content-section" style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+              <div className="section-header">
+                <h2 className="section-title"><FaMedal style={{ color: '#f59e0b', marginRight: 8 }} /> Achievements</h2>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {badges.length > 0 ? badges.map(b => (
+                  <div key={b} className="g-glass-card" style={{ padding: '8px 16px', fontSize: '14px', border: '1px solid #4facfe', color: '#1a202c', fontWeight: 'bold' }}>
+                    {b}
+                  </div>
+                )) : <p style={{ color: '#6b7280' }}>No achievements yet. Keep learning!</p>}
+              </div>
+            </div>
+
+            {/* Progress Summary Card & Radar */}
+            <div className="content-section" style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+              <div className="section-header">
+                <h2 className="section-title">Knowledge Radar</h2>
+              </div>
+              {skillData.length > 0 ? (
+                <div style={{ width: '100%', height: 250 }}>
+                  <ResponsiveContainer>
+                    <RadarChart data={skillData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="subject" />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                      <Radar name="Skills" dataKey="value" stroke="#4facfe" fill="#4facfe" fillOpacity={0.6} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <div style={{ marginTop: 10, fontSize: 14 }}>
+                    <strong>Strong:</strong> {user.strengths.join(', ')} <br />
+                    <strong>Needs Work:</strong> {user.weaknesses.join(', ')}
+                  </div>
+                </div>
+              ) : (
+                <p style={{ color: '#6b7280' }}>Complete an assessment to unlock your radar chart.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="content-section" style={{ marginTop: '24px', background: 'transparent !important', border: 'none', boxShadow: 'none' }}>
             <div className="section-header">
-              <h2 className="section-title">Your Tools</h2>
+              <h2 className="section-title">Mission Control / Tools</h2>
             </div>
             <div className="cards-grid">
               {cards.map((card) => (
-                <div key={card.id} className="dashboard-card" onClick={() => handleCardClick(card.path)}>
+                <div key={card.id} className="dashboard-card" onClick={() => handleCardClick(card.path)} style={{ "--card-color": card.color, "--card-rgb": card.rgb }}>
                   <div className="card-header">
-                    <div className="card-icon" style={{ background: card.color }}>
+                    <div className="card-icon" style={{ background: `linear-gradient(135deg, ${card.color} 0%, rgba(0,0,0,0.5) 100%)`, border: `1px solid ${card.color}` }}>
                       {card.icon}
                     </div>
                     <div className="card-header-text">
@@ -228,7 +286,7 @@ const Dashboard = () => {
                   </div>
                   <div className="card-content">
                     <div className="card-stat" style={{
-                      color: card.stats.includes('yet') || card.stats.includes('scheduled') ? '#6b7280' : card.color,
+                      color: card.stats.includes('yet') || card.stats.includes('scheduled') ? '#8b949e' : card.color,
                       fontSize: '14px',
                       fontWeight: 600
                     }}>
@@ -238,14 +296,13 @@ const Dashboard = () => {
                   <div className="card-footer">
                     <button
                       className="card-button primary"
-                      style={{ background: card.color, borderColor: card.color }}
                     >
                       {card.stats.includes('yet') || card.stats.includes('scheduled') ? (
                         <>
-                          <FaPlus style={{ marginRight: '6px' }} /> Get Started
+                          <FaPlus style={{ marginRight: '6px' }} /> Accept Quest
                         </>
                       ) : (
-                        'Open'
+                        'Open Interface'
                       )}
                     </button>
                   </div>

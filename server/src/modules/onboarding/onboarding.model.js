@@ -37,7 +37,7 @@ const onboardingSchema = new mongoose.Schema({
     },
     learningStyle: {
         type: String,
-        enum: ['visual', 'auditory', 'reading/writing', 'kinesthetic', 'hands-on', 'theoretical']
+        enum: ['visual', 'auditory', 'reading/writing', 'kinesthetic', 'hands-on', 'theoretical', 'mixed']
         // flexible enum or remove enum if strict validation not needed yet
     },
     selfAssessment: {

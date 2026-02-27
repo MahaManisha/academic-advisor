@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext';
 import { getOnboardingQuestions, submitOnboarding } from '../api/onboarding.api';
 import {
   FaArrowRight,
@@ -15,6 +16,7 @@ import './Onboarding.css';
 
 const Onboarding = () => {
   const { user, updateProfile } = useAuth();
+  const { triggerAction } = useGamification();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -111,6 +113,7 @@ const Onboarding = () => {
         if (user) {
           updateProfile({ ...user, onboardingCompleted: true, profileCompleted: true });
         }
+        await triggerAction('ONBOARDING_COMPLETE');
         navigate('/dashboard');
       }
     } catch (err) {
@@ -166,6 +169,13 @@ const Onboarding = () => {
       const newCompleted = adaptiveSession.questionsCompleted + 1;
 
       setFeedback(evalRes.evaluation);
+
+      let xpGained = 0;
+      if (evalRes.evaluation.score >= 0.6) {
+        xpGained = Math.ceil(evalRes.nextDifficulty * 10);
+        triggerAction('CORRECT_ANSWER', xpGained);
+      }
+      setFeedback({ ...evalRes.evaluation, xpGained });
 
       // Calculate Next Step
       if (newCompleted >= 5) {
@@ -347,7 +357,8 @@ const Onboarding = () => {
         </div>
 
         {feedback && (
-          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`}>
+          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`} style={{ position: 'relative' }}>
+            {feedback.xpGained > 0 && <div className="g-floating-xp" style={{ top: -20, right: 20 }}>+{feedback.xpGained} XP</div>}
             <h4>Score: {Math.round(feedback.score * 100)}%</h4>
             <p>{feedback.conceptStrength}</p>
             {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}

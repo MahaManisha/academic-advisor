@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaUserShield, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext';
 import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { triggerAction } = useGamification();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -43,12 +45,10 @@ const Login = () => {
       if (isAdmin) {
         // ✅ Admin → Admin Dashboard (no onboarding)
         navigate('/admin/dashboard');
-      } else if (result.user.onboardingCompleted) {
-        // ✅ Existing student → Student Dashboard (skip onboarding)
-        navigate('/dashboard');
       } else {
-        // ✅ New student → Onboarding
-        navigate('/onboarding');
+        await triggerAction('DAILY_LOGIN');
+        // Always navigate to dashboard, bypassing onboarding
+        navigate('/dashboard');
       }
     } catch (err) {
       if (err.message && err.message.includes('verify')) {

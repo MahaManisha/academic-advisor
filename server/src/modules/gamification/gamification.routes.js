@@ -8,7 +8,8 @@ import {
 
 const router = Router();
 
-router.post("/reward", authMiddleware, reward);
+router.post("/update", authMiddleware, reward);
+router.post("/reward", authMiddleware, reward); // backward compatible
 router.get("/me", authMiddleware, getStats);
 
 export default router;

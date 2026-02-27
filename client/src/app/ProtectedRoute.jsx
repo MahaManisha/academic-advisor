@@ -75,9 +75,9 @@ const ProtectedRoute = ({ children }) => {
   const isTryingToAccessOnboarding = onboardingPaths.includes(location.pathname);
 
   // Case 1: Student NOT onboarded -> Must go to onboarding
-  if (!isOnboarded && !isTryingToAccessOnboarding) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  // if (!isOnboarded && !isTryingToAccessOnboarding) {
+  //   return <Navigate to="/onboarding" replace />;
+  // }
 
   // Case 2: Student ALREADY onboarded -> Must NOT go to onboarding
   if (isOnboarded && isTryingToAccessOnboarding) {

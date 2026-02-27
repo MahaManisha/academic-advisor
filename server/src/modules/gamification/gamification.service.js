@@ -6,20 +6,34 @@ import {
   unlockBadges
 } from "./gamification.rules.js";
 
-export const updateProgress = async (userId, action) => {
+export const updateProgress = async (userId, action, customXP = 0) => {
   let data = await Gamification.findOne({ userId });
 
   if (!data) {
     data = await Gamification.create({ userId });
   }
 
-  data.xp += XP_RULES[action] || 0;
+  const oldLevel = data.level;
+  const oldBadgesLength = data.badges.length;
+
+  // Logic for daily streak would go here based on dates, simplified for now
+  const xpGained = customXP > 0 ? customXP : (XP_RULES[action] || 0);
+  data.xp += xpGained;
   data.level = calculateLevel(data.xp);
   data.lastActive = new Date();
 
-  const newBadges = unlockBadges(data.xp, data.streak);
-  data.badges = [...new Set([...data.badges, ...newBadges])];
+  const newBadgesList = unlockBadges(data.xp, data.streak);
+  const previouslyUnlocked = new Set(data.badges);
+  const unlockedBadges = newBadgesList.filter(b => !previouslyUnlocked.has(b));
+
+  data.badges = [...new Set([...data.badges, ...newBadgesList])];
 
   await data.save();
-  return data;
+  return {
+    newXP: data.xp,
+    level: data.level,
+    unlockedBadges: unlockedBadges,
+    streak: data.streak,
+    levelUp: data.level > oldLevel
+  };
 };

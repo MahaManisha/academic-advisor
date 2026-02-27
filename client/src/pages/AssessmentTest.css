@@ -121,7 +121,7 @@
   width: 100%;
 }
 
-.option-button:hover {
+.option-button:hover:not(:disabled) {
   border-color: #667eea;
   background: #f9fafb;
   transform: translateX(4px);
@@ -383,6 +383,7 @@
 }
 
 @media (max-width: 768px) {
+
   .assessment-card,
   .results-card {
     padding: 24px 20px;
@@ -410,4 +411,38 @@
   .score-value {
     font-size: 48px;
   }
+}
+
+/* Gamification additions */
+.option-button.correct-glow {
+  border-color: #00e676;
+  box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+  background: rgba(0, 230, 118, 0.1);
+}
+
+.option-button.incorrect-glow {
+  border-color: #ff3366;
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+  background: rgba(255, 51, 102, 0.1);
+}
+
+.xp-gained-box {
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffd700;
+  padding: 10px 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin: 10px auto;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  display: inline-block;
+}
+
+.combo-text {
+  color: #ff3366;
+  font-weight: 800;
+  text-shadow: 0 0 10px #ff3366;
+  margin-left: 10px;
+  animation: pulseGlow 1.5s infinite;
 }
