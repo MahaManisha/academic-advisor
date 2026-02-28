@@ -1,6 +1,7 @@
 // client/src/pages/Assessments.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -26,78 +27,44 @@ const Assessments = () => {
     navigate('/login');
   };
 
-  // Mock data - Replace with actual API calls
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      title: 'Data Structures Fundamentals',
-      subject: 'Computer Science',
-      description: 'Test your knowledge on arrays, linked lists, and stacks',
-      questions: 25,
-      duration: '45 mins',
-      status: 'pending',
-      dueDate: '2026-02-05',
-      difficulty: 'Medium',
-      points: 100,
-      yourScore: null
-    },
-    {
-      id: 2,
-      title: 'Database Management Systems',
-      subject: 'Information Technology',
-      description: 'Assessment covering SQL and relational databases',
-      questions: 30,
-      duration: '60 mins',
-      status: 'completed',
-      dueDate: '2026-01-20',
-      difficulty: 'Hard',
-      points: 100,
-      yourScore: 82
-    },
-    {
-      id: 3,
-      title: 'Web Development Basics',
-      subject: 'Web Technologies',
-      description: 'HTML, CSS, and JavaScript fundamentals',
-      questions: 20,
-      duration: '30 mins',
-      status: 'completed',
-      dueDate: '2026-01-15',
-      difficulty: 'Easy',
-      points: 100,
-      yourScore: 95
-    },
-    {
-      id: 4,
-      title: 'Object-Oriented Programming',
-      subject: 'Computer Science',
-      description: 'Classes, inheritance, polymorphism concepts',
-      questions: 28,
-      duration: '50 mins',
-      status: 'pending',
-      dueDate: '2026-02-10',
-      difficulty: 'Hard',
-      points: 100,
-      yourScore: null
-    },
-  ]);
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAssessments = async () => {
+      try {
+        const response = await axios.get('/assessments');
+        if (response.data.success) {
+          setAssessments(response.data.assessments || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch assessments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssessments();
+  }, []);
 
   // Filter assessments based on selected filter
-  const filteredAssessments = filter === 'all' 
-    ? assessments 
+  const filteredAssessments = filter === 'all'
+    ? assessments
     : assessments.filter(a => a.status === filter);
 
   // Calculate stats
+  const completedAssessments = assessments.filter(a => a.status === 'completed');
   const stats = {
     total: assessments.length,
-    completed: assessments.filter(a => a.status === 'completed').length,
+    completed: completedAssessments.length,
     pending: assessments.filter(a => a.status === 'pending').length,
-    averageScore: Math.round(
-      assessments
-        .filter(a => a.status === 'completed' && a.yourScore)
-        .reduce((sum, a) => sum + a.yourScore, 0) / 
-      assessments.filter(a => a.status === 'completed').length || 0
-    )
+    averageScore: completedAssessments.length > 0
+      ? Math.round(
+        completedAssessments
+          .filter(a => a.yourScore != null)
+          .reduce((sum, a) => sum + a.yourScore, 0) /
+        (completedAssessments.filter(a => a.yourScore != null).length || 1)
+      )
+      : 0
   };
 
   const handleStartAssessment = (assessment) => {
@@ -107,9 +74,9 @@ const Assessments = () => {
   return (
     <div className="assessments-page">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
-      
+
       <main className="assessments-main">
-        <Header 
+        <Header
           title="Assessments"
           subtitle={`${filteredAssessments.length} assessments available`}
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -166,19 +133,19 @@ const Assessments = () => {
             <div className="filter-header">
               <h2>Available Assessments</h2>
               <div className="filter-buttons">
-                <button 
+                <button
                   className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
                   onClick={() => setFilter('all')}
                 >
                   <FaFilter /> All ({assessments.length})
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
                   onClick={() => setFilter('pending')}
                 >
                   Pending ({stats.pending})
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
                   onClick={() => setFilter('completed')}
                 >
@@ -190,7 +157,12 @@ const Assessments = () => {
 
           {/* Assessments List */}
           <section className="assessments-list">
-            {filteredAssessments.length > 0 ? (
+            {loading ? (
+              <div className="empty-state" style={{ padding: '4rem 2rem' }}>
+                <div className="spinner" style={{ margin: '0 auto', width: '40px', height: '40px', border: '4px solid var(--border-color)', borderTop: '4px solid var(--accent-neon)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <h3 style={{ marginTop: '1rem' }}>Loading assessments...</h3>
+              </div>
+            ) : filteredAssessments.length > 0 ? (
               filteredAssessments.map((assessment) => (
                 <div key={assessment.id} className="assessment-card">
                   <div className="assessment-header">
@@ -242,8 +214,8 @@ const Assessments = () => {
                       )}
                       <p className="due-date">Due: {new Date(assessment.dueDate).toLocaleDateString()}</p>
                     </div>
-                    
-                    <button 
+
+                    <button
                       className={`assessment-btn ${assessment.status}`}
                       onClick={() => handleStartAssessment(assessment)}
                     >
@@ -253,11 +225,20 @@ const Assessments = () => {
                   </div>
                 </div>
               ))
+            ) : assessments.length === 0 ? (
+              <div className="empty-state" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                <FaClipboardList className="empty-icon" style={{ fontSize: '4rem', color: 'var(--text-light)', marginBottom: '1rem' }} />
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>No assessments available yet</h3>
+                <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>You haven't completed or been assigned any assessments.</p>
+                <button className="btn-primary" onClick={() => navigate('/assessment-test')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', background: 'var(--accent-neon)', color: '#000', fontWeight: 'bold' }}>
+                  Generate Assessment
+                </button>
+              </div>
             ) : (
               <div className="empty-state">
                 <FaClipboardList className="empty-icon" />
-                <h3>No assessments found</h3>
-                <p>There are no {filter !== 'all' ? filter : ''} assessments available right now.</p>
+                <h3>No {filter} assessments found</h3>
+                <p>You don't have any {filter} assessments at the moment.</p>
               </div>
             )}
           </section>

@@ -1,7 +1,30 @@
 // server/src/modules/onboarding/onboarding.prompt.js
 export const SYSTEM_PROMPT = `You are an academic diagnostic AI. Your goal is to identify the student's conceptual depth in the selected domain. Use the retrieved syllabus context to generate domain-specific questions.`;
 
-export const getQuestionGenerationPrompt = (retrievedChunks, previousAnalysis, difficultyLevel, domain) => `
+export const getQuestionGenerationPrompt = (retrievedChunks, previousAnalysis, difficultyLevel, domain, accessibilityPrefs = {}) => {
+  let accessibilityInstructions = [];
+
+  if (accessibilityPrefs.cognitiveMode === 'lowCognitiveLoad') {
+    accessibilityInstructions.push("- Questions must be shorter");
+    accessibilityInstructions.push("- No complex sentences");
+    accessibilityInstructions.push("- Use simple words");
+  }
+
+  if (accessibilityPrefs.screenReaderOptimized === true) {
+    accessibilityInstructions.push("- Avoid emojis");
+    accessibilityInstructions.push("- Avoid decorative symbols");
+    accessibilityInstructions.push("- Use structured formatting");
+  }
+
+  if (accessibilityPrefs.audioSupport === true) {
+    accessibilityInstructions.push("- Include short summary version");
+  }
+
+  const actOnAccessibility = accessibilityInstructions.length > 0
+    ? `\nACCESSIBILITY REQUIREMENTS:\n${accessibilityInstructions.join('\n')}\n`
+    : "";
+
+  return `
 ${SYSTEM_PROMPT}
 
 CONTEXT:
@@ -12,7 +35,7 @@ ${previousAnalysis ? JSON.stringify(previousAnalysis) : "None. This is the first
 
 DOMAIN: ${domain}
 TARGET DIFFICULTY: ${difficultyLevel} (Scale 1-5)
-
+${actOnAccessibility}
 INSTRUCTIONS:
 1. Generate ONE multiple-choice or short-answer question strictly based on the Context provided.
 2. The question must match the TARGET DIFFICULTY.
@@ -23,9 +46,10 @@ INSTRUCTIONS:
   "question": "The actual question text",
   "options": ["A", "B", "C", "D"], // Include only if MCQ, otherwise null
   "expectedConcept": "What conceptual understanding this question tests",
-  "difficulty": ${difficultyLevel}
+  "difficulty": ${difficultyLevel}${accessibilityPrefs.audioSupport ? ',\n  "summary": "Short summary version of the question"' : ''}
 }
 `;
+};
 
 export const getAnswerEvaluationPrompt = (retrievedChunks, question, studentAnswer) => `
 You are an AI Grader evaluating a student's answer based on the provided context.

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import {
@@ -11,12 +12,14 @@ import {
   FaPalette,
   FaGlobe,
   FaShieldAlt,
-  FaSave
+  FaSave,
+  FaUniversalAccess
 } from 'react-icons/fa';
 import './Settings.css';
 
 const Settings = () => {
   const { user, logout } = useAuth();
+  const { preferences, updatePreference } = useAccessibility();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('account');
@@ -31,23 +34,23 @@ const Settings = () => {
     // Account settings
     language: 'english',
     timezone: 'UTC+5:30',
-    
+
     // Notification settings
     emailNotifications: true,
     pushNotifications: true,
     assessmentReminders: true,
     studyPlanReminders: true,
     peerMessages: true,
-    
+
     // Privacy settings
     profileVisibility: 'public',
     showProgress: true,
     allowPeerChat: true,
-    
+
     // Appearance settings
     theme: 'light',
     fontSize: 'medium',
-    
+
     // Security settings
     twoFactorAuth: false,
     loginAlerts: true
@@ -71,7 +74,7 @@ const Settings = () => {
         onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
+
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
@@ -115,6 +118,12 @@ const Settings = () => {
               >
                 <FaLock /> Security
               </button>
+              <button
+                className={`settings-nav-item ${activeTab === 'accessibility' ? 'active' : ''}`}
+                onClick={() => setActiveTab('accessibility')}
+              >
+                <FaUniversalAccess /> Accessibility
+              </button>
             </div>
 
             {/* Settings Content */}
@@ -122,7 +131,7 @@ const Settings = () => {
               {activeTab === 'account' && (
                 <div className="settings-section">
                   <h2 className="settings-title">Account Settings</h2>
-                  
+
                   <div className="setting-group">
                     <label className="setting-label">Language</label>
                     <select
@@ -156,7 +165,7 @@ const Settings = () => {
               {activeTab === 'notifications' && (
                 <div className="settings-section">
                   <h2 className="settings-title">Notification Preferences</h2>
-                  
+
                   <div className="setting-toggle">
                     <div className="toggle-info">
                       <div className="toggle-label">Email Notifications</div>
@@ -237,7 +246,7 @@ const Settings = () => {
               {activeTab === 'privacy' && (
                 <div className="settings-section">
                   <h2 className="settings-title">Privacy Settings</h2>
-                  
+
                   <div className="setting-group">
                     <label className="setting-label">Profile Visibility</label>
                     <select
@@ -289,7 +298,7 @@ const Settings = () => {
               {activeTab === 'appearance' && (
                 <div className="settings-section">
                   <h2 className="settings-title">Appearance</h2>
-                  
+
                   <div className="setting-group">
                     <label className="setting-label">Theme</label>
                     <div className="theme-options">
@@ -332,7 +341,7 @@ const Settings = () => {
               {activeTab === 'security' && (
                 <div className="settings-section">
                   <h2 className="settings-title">Security Settings</h2>
-                  
+
                   <div className="setting-toggle">
                     <div className="toggle-info">
                       <div className="toggle-label">Two-Factor Authentication</div>
@@ -367,6 +376,156 @@ const Settings = () => {
                     <button className="btn-danger">
                       Change Password
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'accessibility' && (
+                <div className="settings-section">
+                  <h2 className="settings-title">Accessibility Options</h2>
+
+                  <h3 className="settings-subtitle" style={{ marginTop: '20px', marginBottom: '10px', fontSize: '1.2rem', color: 'var(--text-light)' }}>1. Visual Settings</h3>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">High Contrast Mode</div>
+                      <div className="toggle-description">Enhanced text readability with black background and yellow text</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.highContrastMode}
+                        onChange={(e) => updatePreference('highContrastMode', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Large Text Mode</div>
+                      <div className="toggle-description">Increase global text size</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.largeTextMode}
+                        onChange={(e) => updatePreference('largeTextMode', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Dyslexia Friendly Font</div>
+                      <div className="toggle-description">Switch to a font designed for dyslexic readers</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.dyslexiaFont}
+                        onChange={(e) => updatePreference('dyslexiaFont', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Dark / Light Mode</div>
+                      <div className="toggle-description">Switch between dark UI color schemes</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.darkMode}
+                        onChange={(e) => updatePreference('darkMode', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+
+                  <h3 className="settings-subtitle" style={{ marginTop: '30px', marginBottom: '10px', fontSize: '1.2rem', color: 'var(--text-light)' }}>2. Motion Settings</h3>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Reduced Motion</div>
+                      <div className="toggle-description">Disable UI animations universally</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.reducedMotion}
+                        onChange={(e) => updatePreference('reducedMotion', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <h3 className="settings-subtitle" style={{ marginTop: '30px', marginBottom: '10px', fontSize: '1.2rem', color: 'var(--text-light)' }}>3. Input Support</h3>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Keyboard Navigation Mode</div>
+                      <div className="toggle-description">Enhances selection focus borders</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.keyboardNavigation}
+                        onChange={(e) => updatePreference('keyboardNavigation', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Voice Interaction Mode</div>
+                      <div className="toggle-description">Enable Speech-to-Text interaction functionality (Future ready)</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.voiceInteraction}
+                        onChange={(e) => updatePreference('voiceInteraction', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <h3 className="settings-subtitle" style={{ marginTop: '30px', marginBottom: '10px', fontSize: '1.2rem', color: 'var(--text-light)' }}>4. Cognitive Support</h3>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Simplified Interface</div>
+                      <div className="toggle-description">Hide non-essential data and menus</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.simplifiedInterface}
+                        onChange={(e) => updatePreference('simplifiedInterface', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div className="setting-toggle">
+                    <div className="toggle-info">
+                      <div className="toggle-label">Low Cognitive Load Mode</div>
+                      <div className="toggle-description">Restricts question complexity and limits distractions</div>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={preferences.lowCognitiveLoad}
+                        onChange={(e) => updatePreference('lowCognitiveLoad', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
                   </div>
                 </div>
               )}

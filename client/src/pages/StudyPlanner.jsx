@@ -1,6 +1,7 @@
 // client/src/pages/StudyPlanner.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -11,7 +12,8 @@ import {
   FaClock,
   FaTrash,
   FaEdit,
-  FaFilter
+  FaFilter,
+  FaTasks
 } from 'react-icons/fa';
 import './StudyPlanner.css';
 
@@ -21,43 +23,30 @@ const StudyPlanner = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddTask, setShowAddTask] = useState(false);
-  const [filter, setFilter] = useState('all'); // all, pending, completed
+  const [filter, setFilter] = useState('all');
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // Mock data - Replace with actual API calls
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: 'Complete Data Structures Assignment',
-      subject: 'Programming',
-      priority: 'high',
-      dueDate: '2025-01-30',
-      duration: 120,
-      status: 'pending'
-    },
-    {
-      id: 2,
-      title: 'Study Database Normalization',
-      subject: 'Database',
-      priority: 'medium',
-      dueDate: '2025-01-29',
-      duration: 60,
-      status: 'pending'
-    },
-    {
-      id: 3,
-      title: 'Practice Sorting Algorithms',
-      subject: 'Programming',
-      priority: 'low',
-      dueDate: '2025-01-28',
-      duration: 45,
-      status: 'completed'
-    }
-  ]);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await axios.get('/planner/tasks');
+        if (res.data.success) {
+          setTasks(res.data.tasks || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch study tasks:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   const [newTask, setNewTask] = useState({
     title: '',
@@ -110,8 +99,8 @@ const StudyPlanner = () => {
   const stats = {
     totalTasks: tasks.length,
     completed: tasks.filter(t => t.status === 'completed').length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    totalHours: tasks.reduce((acc, t) => acc + t.duration, 0) / 60
+    pending: tasks.filter(t => t.status !== 'completed').length,
+    totalHours: tasks.reduce((acc, t) => acc + (t.duration || 0), 0) / 60
   };
 
   return (
@@ -121,7 +110,7 @@ const StudyPlanner = () => {
         onClose={() => setSidebarOpen(false)}
         user={user}
       />
-      
+
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onLogout={handleLogout}
@@ -252,11 +241,29 @@ const StudyPlanner = () => {
 
           {/* Tasks List */}
           <div className="tasks-list">
-            {filteredTasks.length === 0 ? (
+            {loading ? (
+              <div className="empty-state" style={{ padding: '4rem 2rem' }}>
+                <div className="spinner" style={{ margin: '0 auto', width: '40px', height: '40px', border: '4px solid var(--border-color)', borderTop: '4px solid var(--accent-neon)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <h3 style={{ marginTop: '1rem' }}>Loading planner...</h3>
+              </div>
+            ) : filteredTasks.length === 0 && filter === 'all' ? (
+              <div className="empty-state" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                <FaTasks className="empty-icon" style={{ fontSize: '4rem', color: 'var(--text-light)', marginBottom: '1rem' }} />
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>No tasks added yet</h3>
+                <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>Click "Add New Task" to get started organizing your schedule.</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowAddTask(true)}
+                  style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', background: 'var(--accent-neon)', color: '#000', fontWeight: 'bold' }}
+                >
+                  Create Task
+                </button>
+              </div>
+            ) : filteredTasks.length === 0 ? (
               <div className="empty-state">
                 <FaCalendarAlt className="empty-icon" />
-                <h3>No tasks found</h3>
-                <p>Add your first study task to get started!</p>
+                <h3>No {filter} tasks</h3>
+                <p>You don't have any tasks matching this filter.</p>
               </div>
             ) : (
               filteredTasks.map((task) => (
@@ -268,7 +275,7 @@ const StudyPlanner = () => {
                       onChange={() => handleToggleTask(task.id)}
                     />
                   </div>
-                  
+
                   <div className="task-content">
                     <h4 className="task-title">{task.title}</h4>
                     <div className="task-meta">
@@ -277,14 +284,14 @@ const StudyPlanner = () => {
                         <FaClock /> {task.duration} min
                       </span>
                       <span className="task-due-date">
-                        <FaCalendarAlt /> {new Date(task.dueDate).toLocaleDateString()}
+                        <FaCalendarAlt /> {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Flexible'}
                       </span>
                     </div>
                   </div>
 
                   <div className="task-priority">
                     <span className={`priority-badge ${task.priority}`}>
-                      {task.priority}
+                      {task.priority || 'medium'}
                     </span>
                   </div>
 

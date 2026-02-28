@@ -82,13 +82,25 @@ const userSchema = new mongoose.Schema(
     },
 
     accessibilityPreferences: {
-      type: Object,
-      default: {
-        highContrastMode: false,
-        reducedMotion: false,
-        voiceMode: false,
-        gameMode: true
-      }
+      visualMode: { type: String, default: "normal" },
+      motionMode: { type: String, default: "normal" },
+      inputMode: { type: String, default: "keyboard" },
+      cognitiveMode: { type: String, default: "standard" },
+      audioSupport: { type: Boolean, default: false },
+      screenReaderOptimized: { type: Boolean, default: false },
+      // New UI toggles from accessibility panel
+      largeTextMode: { type: Boolean, default: false },
+      dyslexiaFont: { type: Boolean, default: false },
+      darkMode: { type: Boolean, default: false },
+      keyboardNavigation: { type: Boolean, default: false },
+      voiceInteraction: { type: Boolean, default: false },
+      simplifiedInterface: { type: Boolean, default: false },
+      lowCognitiveLoad: { type: Boolean, default: false },
+      // Legacy fields to not break existing schema
+      highContrastMode: { type: Boolean, default: false },
+      reducedMotion: { type: Boolean, default: false },
+      voiceMode: { type: Boolean, default: false },
+      gameMode: { type: Boolean, default: true }
     },
 
     pendingAssessments: {

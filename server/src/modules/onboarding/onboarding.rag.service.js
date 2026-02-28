@@ -26,10 +26,10 @@ export const retrieveSyllabusChunks = async (domain, previousAnalysis, difficult
     return getMockSyllabusContext(domain);
 };
 
-export const generateAdaptiveQuestion = async (domain, difficultyLevel, previousAnalysis = null) => {
+export const generateAdaptiveQuestion = async (domain, difficultyLevel, previousAnalysis = null, accessibilityPrefs = {}) => {
     try {
         const retrievedChunks = await retrieveSyllabusChunks(domain, previousAnalysis, difficultyLevel);
-        const prompt = getQuestionGenerationPrompt(retrievedChunks, previousAnalysis, difficultyLevel, domain);
+        const prompt = getQuestionGenerationPrompt(retrievedChunks, previousAnalysis, difficultyLevel, domain, accessibilityPrefs);
 
         const groq = getGroqClient();
         const completion = await groq.chat.completions.create({

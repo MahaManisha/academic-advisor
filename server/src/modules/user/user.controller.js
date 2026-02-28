@@ -247,3 +247,43 @@ export const updateUserPreferences = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 };
+
+// Route: PATCH /api/users/accessibility
+export const updateAccessibilityPreferences = async (req, res) => {
+    try {
+        const { accessibilityPreferences } = req.body;
+
+        if (!accessibilityPreferences || typeof accessibilityPreferences !== 'object') {
+            return res.status(400).json({ success: false, message: "Invalid input" });
+        }
+
+        const user = await User.findById(req.user.userId || req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const allowedKeys = [
+            'visualMode', 'motionMode', 'inputMode', 'cognitiveMode',
+            'audioSupport', 'screenReaderOptimized', 'highContrastMode',
+            'reducedMotion', 'voiceMode', 'gameMode',
+            'largeTextMode', 'dyslexiaFont', 'darkMode', 'keyboardNavigation',
+            'voiceInteraction', 'simplifiedInterface', 'lowCognitiveLoad'
+        ];
+
+        allowedKeys.forEach(key => {
+            if (accessibilityPreferences[key] !== undefined) {
+                user.accessibilityPreferences[key] = accessibilityPreferences[key];
+            }
+        });
+
+        await user.save();
+
+        const updatedUser = user.toObject();
+        delete updatedUser.passwordHash;
+
+        res.json({ success: true, user: updatedUser });
+    } catch (error) {
+        console.error("Update Accessibility Preferences Error:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};

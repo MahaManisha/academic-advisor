@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import ReactMarkdown from 'react-markdown';
@@ -11,17 +12,28 @@ import {
   FaUser,
   FaLightbulb,
   FaBook,
-  FaChartLine
+  FaChartLine,
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVolumeUp,
+  FaVolumeMute
 } from 'react-icons/fa';
 import './AdvisorChat.css';
 import { sendMessage } from '../api/chat.api';
 
 const AdvisorChat = () => {
   const { user, logout } = useAuth();
+  const { preferences } = useAccessibility();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Voice feature states
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(preferences?.voiceInteraction || false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -44,6 +56,74 @@ const AdvisorChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Sync with global preference if it changes
+  useEffect(() => {
+    if (preferences?.voiceInteraction !== undefined) {
+      setVoiceModeEnabled(preferences.voiceInteraction);
+    }
+  }, [preferences?.voiceInteraction]);
+
+  // Cleanup synthesis on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Text-To-Speech
+  const speakText = (text) => {
+    if (!voiceModeEnabled) return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance();
+      // Clean up markdown formatting for better speech output
+      utterance.text = text.replace(/[*_#`~>]/g, '');
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Speech-To-Text
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => setIsListening(true);
+
+      recognition.onresult = (e) => {
+        const transcript = Array.from(e.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+        setMessage(transcript);
+      };
+
+      recognition.onerror = (e) => {
+        console.error("Speech recognition error", e);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } else {
+      alert("Speech recognition is not supported in this browser. Try Chrome or Safari.");
+    }
+  };
 
   const quickQuestions = [
     {
@@ -69,10 +149,17 @@ const AdvisorChat = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
 
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
+
+    const userMessageContent = message;
+
     const userMessage = {
       id: Date.now(),
       type: 'user',
-      content: message,
+      content: userMessageContent,
       timestamp: new Date()
     };
 
@@ -81,8 +168,7 @@ const AdvisorChat = () => {
     setIsLoading(true);
 
     try {
-      // Call real backend API (Gemini AI)
-      const data = await sendMessage(message);
+      const data = await sendMessage(userMessageContent);
 
       const botResponse = {
         id: Date.now() + 1,
@@ -92,6 +178,7 @@ const AdvisorChat = () => {
         confidence: data.confidence
       };
       setMessages(prev => [...prev, botResponse]);
+      speakText(data.response);
     } catch (error) {
       console.error("Chat failed:", error);
       const errorResponse = {
@@ -101,6 +188,7 @@ const AdvisorChat = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorResponse]);
+      speakText(errorResponse.content);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +231,20 @@ const AdvisorChat = () => {
             {/* Quick Questions */}
             {messages.length === 1 && (
               <div className="quick-questions">
-                <h3>Quick Questions</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3>Quick Questions</h3>
+                  <button
+                    onClick={() => {
+                      setVoiceModeEnabled(!voiceModeEnabled);
+                      if (voiceModeEnabled) window.speechSynthesis.cancel();
+                    }}
+                    className="toggle-voice-btn"
+                    title={voiceModeEnabled ? "Disable Voice Mode" : "Enable Voice Mode"}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+                  >
+                    {voiceModeEnabled ? <FaVolumeUp /> : <FaVolumeMute />}
+                  </button>
+                </div>
                 <div className="questions-grid">
                   {quickQuestions.map((q) => (
                     <button
@@ -227,7 +328,43 @@ const AdvisorChat = () => {
 
             {/* Input */}
             <div className="chat-input-container">
+              {/* Toolbar for Voice if quick questions are scrolled away */}
+              {messages.length > 1 && (
+                <div className="chat-toolbar" style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '0.5rem' }}>
+                  <button
+                    onClick={() => {
+                      setVoiceModeEnabled(!voiceModeEnabled);
+                      if (voiceModeEnabled) window.speechSynthesis.cancel();
+                    }}
+                    className="toggle-voice-btn"
+                    title={voiceModeEnabled ? "Disable Voice Mode" : "Enable Voice Mode"}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  >
+                    {voiceModeEnabled ? <><FaVolumeUp /> Voice UI Active</> : <><FaVolumeMute /> Voice UI Muted</>}
+                  </button>
+                </div>
+              )}
+
               <div className="chat-input-wrapper">
+                {voiceModeEnabled && (
+                  <button
+                    className={`btn-microphone ${isListening ? 'listening' : ''}`}
+                    onClick={toggleListening}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: isListening ? '#f56565' : 'var(--text-light)',
+                      cursor: 'pointer',
+                      padding: '0 1rem',
+                      fontSize: '1.2rem',
+                      transition: 'color 0.2s ease',
+                      animation: isListening ? 'pulse 1.5s infinite' : 'none'
+                    }}
+                    title={isListening ? "Stop listening" : "Start speaking"}
+                  >
+                    {isListening ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                  </button>
+                )}
                 <textarea
                   className="chat-input"
                   placeholder="Ask me anything about your studies..."

@@ -10,7 +10,8 @@ import {
   getCurrentUser,
   completeOnboarding,
   getUserProfile,
-  updateUserPreferences
+  updateUserPreferences,
+  updateAccessibilityPreferences
 } from "./user.controller.js";
 
 const router = Router();
@@ -19,6 +20,7 @@ const router = Router();
 router.get("/me", authMiddleware, getCurrentUser);
 router.get("/profile", authMiddleware, getUserProfile);
 router.patch("/preferences", authMiddleware, updateUserPreferences);
+router.patch("/accessibility", authMiddleware, updateAccessibilityPreferences);
 router.post("/onboarding", authMiddleware, completeOnboarding);
 
 
@@ -52,5 +54,3 @@ router.get(
 );
 
 export default router;
-
-// touch

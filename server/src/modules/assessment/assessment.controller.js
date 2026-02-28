@@ -8,6 +8,7 @@ import { scrapeSyllabus } from "../../utils/scrape.service.js"; // Import new sc
 
 import User from "../user/user.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
+import AssessmentAttempt from "./assessmentAttempt.model.js";
 
 export const generate = async (req, res, next) => {
   try {
@@ -119,6 +120,36 @@ export const getOnboardingQuestions = async (req, res, next) => {
     res.json({ success: true, questions, domain });
   } catch (err) {
     console.error(err);
+    next(err);
+  }
+};
+
+export const getAllAssessments = async (req, res, next) => {
+  try {
+    const attempts = await AssessmentAttempt.find({
+      userId: req.user.id || req.user.userId
+    }).sort({ createdAt: -1 });
+
+    if (!attempts || attempts.length === 0) {
+      return res.json({ success: true, assessments: [] });
+    }
+
+    const formattedAssessments = attempts.map(attempt => ({
+      id: attempt._id,
+      title: `${attempt.domain || 'Domain'} Assessment`,
+      subject: attempt.domain || 'General',
+      description: `Adaptive assessment for ${attempt.domain || 'General Topics'}`,
+      questions: attempt.answers ? attempt.answers.length : 0,
+      duration: 'Flexible',
+      status: 'completed',
+      dueDate: attempt.createdAt ? attempt.createdAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      difficulty: attempt.inferredLevel || 'Medium',
+      points: attempt.score ? attempt.score * 10 : 100,
+      yourScore: attempt.accuracy ? Math.round(attempt.accuracy) : (attempt.score || 0)
+    }));
+
+    res.json({ success: true, assessments: formattedAssessments });
+  } catch (err) {
     next(err);
   }
 };

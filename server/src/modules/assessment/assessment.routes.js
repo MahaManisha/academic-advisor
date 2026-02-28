@@ -1,7 +1,7 @@
 // server/src/modules/assessment/assessment.routes.js
 import { Router } from "express";
 import authMiddleware from "../../middlewares/auth.middleware.js";
-import { start, submit, getOnboardingQuestions, generate } from "./assessment.controller.js";
+import { start, submit, getOnboardingQuestions, generate, getAllAssessments } from "./assessment.controller.js";
 
 const router = Router();
 
@@ -11,6 +11,8 @@ router.post("/generate", authMiddleware, generate);
 
 // Route to get dynamic onboarding questions based on user's course
 router.get("/onboarding-questions", authMiddleware, getOnboardingQuestions);
+
+router.get("/", authMiddleware, getAllAssessments);
 
 router.get("/:domain/start", authMiddleware, start);
 router.post("/:domain/submit", authMiddleware, submit);

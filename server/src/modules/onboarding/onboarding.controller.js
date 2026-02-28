@@ -1,5 +1,6 @@
 import * as onboardingService from './onboarding.service.js';
 import * as ragService from './onboarding.rag.service.js';
+import User from '../user/user.model.js';
 
 export const getQuestions = async (req, res) => {
     try {
@@ -42,7 +43,15 @@ export const getAdaptiveQuestion = async (req, res) => {
         // Default difficulty if not provided is 3
         const level = difficulty || 3;
 
-        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis);
+        let accessibilityPrefs = {};
+        if (req.user && (req.user.id || req.user.userId)) {
+            const user = await User.findById(req.user.id || req.user.userId);
+            if (user && user.accessibilityPreferences) {
+                accessibilityPrefs = user.accessibilityPreferences;
+            }
+        }
+
+        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis, accessibilityPrefs);
 
         res.status(200).json({
             success: true,
