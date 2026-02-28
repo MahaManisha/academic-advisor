@@ -1,5 +1,6 @@
 import User from "./user.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
+import UserAnalytics from "../../models/UserAnalytics.js";
 
 // Get all users (Admin only)
 export const getAllUsers = async (req, res) => {
@@ -184,6 +185,39 @@ export const completeOnboarding = async (req, res) => {
     }
 };
 
+// Get User Profile with Analytics
+
+export const getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId || req.user.id).select("-passwordHash");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const analytics = await UserAnalytics.findOne({ userId: user._id });
+
+        let analyticsSummary = null;
+        if (analytics) {
+            analyticsSummary = {
+                interestVector: analytics.interestVector,
+                cognitiveProfile: analytics.cognitiveProfile,
+                passionScore: analytics.passionScore,
+                confidenceScore: analytics.confidenceScore,
+                recommendedTracks: analytics.recommendedTracks
+            };
+        }
+
+        res.json({
+            success: true,
+            user,
+            analytics: analyticsSummary
+        });
+    } catch (error) {
+        console.error("Get User Profile Error:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
 // Get current logged in user (Full Profile)
 export const getCurrentUser = async (req, res) => {
     try {
@@ -193,6 +227,23 @@ export const getCurrentUser = async (req, res) => {
         }
         res.json({ success: true, user });
     } catch (error) {
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
+// Update accessibility preferences
+export const updateUserPreferences = async (req, res) => {
+    try {
+        const { accessibilityPreferences } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.user.userId || req.user.id,
+            { $set: { accessibilityPreferences } },
+            { new: true }
+        ).select("-passwordHash");
+
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error("Update Preferences Error:", error);
         res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 };

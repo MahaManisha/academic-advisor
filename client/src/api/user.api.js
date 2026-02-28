@@ -29,3 +29,23 @@ export const updateUserStatus = async (userId, status) => {
         throw error.response?.data || error.message;
     }
 };
+
+// Get specific user profile with Analytics (Auth)
+export const getUserProfile = async () => {
+    try {
+        const response = await axios.get('/users/profile');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+// Update accessibility preferences (Auth)
+export const updateUserPreferences = async (preferences) => {
+    try {
+        const response = await axios.patch('/users/preferences', { accessibilityPreferences: preferences });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

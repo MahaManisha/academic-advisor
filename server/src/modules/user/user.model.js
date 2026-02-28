@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema(
     syllabusUrl: { type: String, trim: true }, // For auto-generating assessments
     degreeType: { type: String },
     domain: { type: String, trim: true }, // Course/Major
+    department: { type: String, trim: true },
     year: { type: Number, min: 1, max: 5 },
     areaOfInterest: [{ type: String }], // Multi-select
 
@@ -78,6 +79,16 @@ const userSchema = new mongoose.Schema(
     onboardingCompleted: {
       type: Boolean,
       default: false
+    },
+
+    accessibilityPreferences: {
+      type: Object,
+      default: {
+        highContrastMode: false,
+        reducedMotion: false,
+        voiceMode: false,
+        gameMode: true
+      }
     },
 
     pendingAssessments: {

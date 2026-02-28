@@ -8,13 +8,17 @@ import {
   updateUserStatus,
   getStudentProfile,
   getCurrentUser,
-  completeOnboarding
+  completeOnboarding,
+  getUserProfile,
+  updateUserPreferences
 } from "./user.controller.js";
 
 const router = Router();
 
 // Only logged-in users
 router.get("/me", authMiddleware, getCurrentUser);
+router.get("/profile", authMiddleware, getUserProfile);
+router.patch("/preferences", authMiddleware, updateUserPreferences);
 router.post("/onboarding", authMiddleware, completeOnboarding);
 
 
@@ -48,3 +52,5 @@ router.get(
 );
 
 export default router;
+
+// touch

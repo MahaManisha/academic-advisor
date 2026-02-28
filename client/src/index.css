@@ -99,3 +99,4 @@ select {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+ /* Tailwind Fallback Utilities */ \n .flex-1 { flex: 1 1 0%; } \n .flex { display: flex; } \n .justify-center { justify-content: center; } \n .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } \n .w-full { width: 100%; } \n .max-w-7xl { max-width: 80rem; } \n.mx-auto { margin-left: auto; margin-right: auto; }

@@ -161,8 +161,8 @@ const Dashboard = () => {
         notificationCount={userStats.upcomingDeadlines}
       />
 
-      <main className="dashboard-main">
-        <div className="main-content">
+      <main className="dashboard-main flex-1 flex justify-center px-6">
+        <div className="main-content w-full max-w-7xl">
           {/* Welcome Banner */}
           <div className="welcome-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <div className="welcome-banner-content" style={{ flex: 1, minWidth: 250 }}>
