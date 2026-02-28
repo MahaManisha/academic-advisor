@@ -48,7 +48,6 @@ const userSchema = new mongoose.Schema(
     academicStatus: {
       type: String,
       enum: ["school", "college", "graduated"],
-      default: "college",
       index: true
     },
 

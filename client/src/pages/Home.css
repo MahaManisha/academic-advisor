@@ -368,9 +368,14 @@
   font-family: var(--game-font-display);
   font-size: 48px;
   font-weight: 900;
-  color: var(--game-neon-pink);
+  background: linear-gradient(135deg, var(--game-neon-blue), var(--game-neon-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--game-neon-blue);
+  /* Fallback */
   margin-bottom: 12px;
-  text-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+  filter: drop-shadow(0 0 15px rgba(0, 255, 204, 0.6));
 }
 
 .stat-label {
@@ -378,7 +383,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: var(--game-text-muted);
+  color: var(--game-text-primary);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 /* CTA Section */
