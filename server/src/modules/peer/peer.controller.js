@@ -5,6 +5,7 @@ import {
     respondToConnectionRequest
 } from "./peer.service.js";
 import { getMessages } from "./chat.service.js";
+import { createNotification } from "../notification/notification.controller.js";
 
 /**
  * GET /api/peers/list
@@ -34,6 +35,17 @@ export const sendRequest = async (req, res, next) => {
         const targetUserId = req.params.id;
 
         const result = await sendConnectionRequest(currentUserId, targetUserId);
+
+        // Notify target user
+        const io = req.app.get('io');
+        await createNotification({
+            recipient: targetUserId,
+            sender: currentUserId,
+            type: "FRIEND_REQUEST",
+            message: "🎉 New Ally Request!",
+            relatedId: currentUserId,
+            io
+        });
 
         res.json({
             success: true,
@@ -66,6 +78,18 @@ export const respondRequest = async (req, res, next) => {
             requesterId,
             action
         );
+
+        if (action === "accept") {
+            const io = req.app.get('io');
+            await createNotification({
+                recipient: requesterId,
+                sender: currentUserId,
+                type: "FRIEND_ACCEPTED",
+                message: "🎉 Your ally request was accepted!",
+                relatedId: currentUserId,
+                io
+            });
+        }
 
         res.json({
             success: true,

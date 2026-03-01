@@ -9,6 +9,7 @@ import { scrapeSyllabus } from "../../utils/scrape.service.js"; // Import new sc
 import User from "../user/user.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
 import AssessmentAttempt from "./assessmentAttempt.model.js";
+import { createNotification } from "../notification/notification.controller.js";
 
 export const generate = async (req, res, next) => {
   try {
@@ -64,6 +65,16 @@ export const generate = async (req, res, next) => {
 
     // Use personalized generation
     const assessment = await generatePersonalizedAssessment(finalContext, studentDetails);
+
+    // Notify the user
+    const io = req.app.get('io');
+    await createNotification({
+      recipient: req.user.id,
+      type: "ASSESSMENT_READY",
+      message: "🏆 Level Up! Your AI Challenge is Ready!",
+      io
+    });
+
     res.json({ success: true, assessment });
   } catch (err) {
     next(err);

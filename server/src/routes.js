@@ -11,6 +11,7 @@ import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import gamificationRoutes from "./modules/gamification/gamification.routes.js";
 import peerRoutes from "./modules/peer/peerChat.routes.js";
 import nlpRoutes from "./modules/nlp/nlp.routes.js";
+import notificationRoutes from "./modules/notification/notification.routes.js";
 
 import courseRoutes from "./modules/course/course.routes.js";
 import configRoutes from "./modules/config/config.routes.js";
@@ -39,5 +40,6 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/nlp", nlpRoutes);
 router.use("/profile", studentProfileRoutes);
+router.use("/notifications", notificationRoutes);
 
 export default router;

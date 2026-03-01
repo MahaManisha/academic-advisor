@@ -18,6 +18,7 @@ import { Server } from "socket.io";
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import setupSockets from "./socket/index.js";
+import { initDeadlineCron } from "./cron/deadlineReminder.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -36,8 +37,14 @@ const io = new Server(server, {
   }
 });
 
+// Make io accessible across app via req.app.get('io')
+app.set('io', io);
+
 // Setup socket events
 setupSockets(io);
+
+// Initialize Cron Jobs
+initDeadlineCron(io);
 
 // Start server
 server.listen(PORT, () => {

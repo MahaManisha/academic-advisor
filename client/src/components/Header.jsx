@@ -1,5 +1,6 @@
 // client/src/components/Header.jsx
 import { FaBars, FaBell, FaSearch, FaSignOutAlt } from 'react-icons/fa';
+import NotificationBell from './notifications/NotificationBell';
 import './Header.css';
 
 const Header = ({ onMenuToggle, onLogout, title, subtitle, showSearch = true }) => {
@@ -20,18 +21,15 @@ const Header = ({ onMenuToggle, onLogout, title, subtitle, showSearch = true }) 
           {showSearch && (
             <div className="header-search">
               <FaSearch className="search-icon" />
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Search..." 
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search..."
               />
             </div>
           )}
 
-          <button className="header-notifications">
-            <FaBell />
-            <span className="notification-badge"></span>
-          </button>
+          <NotificationBell />
 
           <button onClick={onLogout} className="logout-button">
             <FaSignOutAlt />

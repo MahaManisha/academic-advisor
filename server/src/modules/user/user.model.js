@@ -114,6 +114,12 @@ const userSchema = new mongoose.Schema(
       default: "active"
     },
 
+    notificationSettings: {
+      deadline: { type: Boolean, default: true },
+      friendRequest: { type: Boolean, default: true },
+      message: { type: Boolean, default: true }
+    },
+
     // Onboarding Profile
     focus: { type: String }, // e.g., 'academic', 'career', 'research'
     learningMode: { type: String }, // e.g., 'visual', 'hands-on'

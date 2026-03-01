@@ -1,5 +1,6 @@
 // server/src/modules/peer/chat.socket.js
 import { saveMessage, markMessagesSeen } from "./chat.service.js";
+import { createNotification } from "../notification/notification.controller.js";
 
 // Track online users: userId -> Set<socketId>
 // Exported so other modules can check online status if needed
@@ -72,6 +73,19 @@ const setupChatSocket = (io, socket) => {
                 seen: false,
                 roomId
             });
+
+            // Trigger personal notification if receiver is not currently looking at the chat
+            // In a real app we might check if they are in the 'roomId', but for now notifying is fine.
+            if (receiverId) {
+                await createNotification({
+                    recipient: receiverId,
+                    sender: senderId,
+                    type: "NEW_MESSAGE",
+                    message: `💬 New message received!`,
+                    relatedId: roomId,
+                    io
+                });
+            }
         } catch (error) {
             console.error("❌ Error saving message:", error.message);
             socket.emit("message_error", { error: "Failed to send message" });
