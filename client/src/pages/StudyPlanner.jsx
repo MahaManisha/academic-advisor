@@ -21,11 +21,12 @@ const StudyPlanner = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddTask, setShowAddTask] = useState(false);
   const [filter, setFilter] = useState('all');
   const [tasks, setTasks] = useState([]);
+  const [planId, setPlanId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -38,6 +39,7 @@ const StudyPlanner = () => {
         const res = await axios.get('/planner/tasks');
         if (res.data.success) {
           setTasks(res.data.tasks || []);
+          setPlanId(res.data.planId || null);
         }
       } catch (err) {
         console.error('Failed to fetch study tasks:', err);
@@ -55,6 +57,27 @@ const StudyPlanner = () => {
     dueDate: '',
     duration: 60
   });
+
+  const handleGeneratePlan = async () => {
+    setGenerating(true);
+    try {
+      const res = await axios.post('/planner/generate', { period: 'weekly' });
+      if (res.data.success) {
+        // Fetch tasks again to map backend structure to frontend structure properly
+        const refetch = await axios.get('/planner/tasks');
+        if (refetch.data.success) {
+          setTasks(refetch.data.tasks || []);
+          setPlanId(refetch.data.planId || null);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to generate study plan:', err);
+      alert('Could not generate plan. Please try again.');
+    } finally {
+      setGenerating(false);
+      setShowAddTask(false);
+    }
+  };
 
   const handleAddTask = () => {
     if (newTask.title && newTask.subject && newTask.dueDate) {
@@ -77,12 +100,30 @@ const StudyPlanner = () => {
     }
   };
 
-  const handleToggleTask = (id) => {
-    setTasks(tasks.map(task =>
-      task.id === id
-        ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-        : task
+  const handleToggleTask = async (id) => {
+    // Find current task
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+
+    // Optimistic UI update
+    setTasks(tasks.map(t =>
+      t.id === id ? { ...t, status: newStatus } : t
     ));
+
+    // Backend update if part of a real plan
+    if (planId && typeof id === 'string') {
+      try {
+        await axios.patch(`/planner/${planId}/task/${id}`, { status: newStatus });
+      } catch (err) {
+        console.error("Failed to update task", err);
+        // Revert UI on failure
+        setTasks(tasks.map(t =>
+          t.id === id ? { ...t, status: task.status } : t
+        ));
+      }
+    }
   };
 
   const handleDeleteTask = (id) => {
@@ -164,12 +205,26 @@ const StudyPlanner = () => {
           </div>
 
           {/* Actions */}
-          <div className="planner-actions">
+          <div className="planner-actions" style={{ display: 'flex', gap: '15px' }}>
+            <button
+              className="btn-add-task"
+              onClick={handleGeneratePlan}
+              disabled={generating}
+              style={{
+                background: 'var(--game-neon-pink)',
+                color: '#fff',
+                border: 'none',
+                boxShadow: '0 0 10px rgba(255, 0, 255, 0.4)'
+              }}
+            >
+              <FaCheckCircle style={{ marginRight: '8px' }} />
+              {generating ? 'Generating AI Plan...' : 'Auto-Generate AI Plan'}
+            </button>
             <button
               className="btn-add-task"
               onClick={() => setShowAddTask(!showAddTask)}
             >
-              <FaPlus /> Add New Task
+              <FaPlus /> Add Manual Task
             </button>
 
             <div className="filter-group">
@@ -248,15 +303,27 @@ const StudyPlanner = () => {
               </div>
             ) : filteredTasks.length === 0 && filter === 'all' ? (
               <div className="empty-state" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                <FaTasks className="empty-icon" style={{ fontSize: '4rem', color: 'var(--text-light)', marginBottom: '1rem' }} />
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>No tasks added yet</h3>
-                <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>Click "Add New Task" to get started organizing your schedule.</p>
+                <FaTasks className="empty-icon" style={{ fontSize: '4rem', color: 'var(--game-neon-blue)', marginBottom: '1rem', filter: 'drop-shadow(0 0 10px rgba(0, 255, 204, 0.5))' }} />
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontFamily: 'var(--game-font-display)', textTransform: 'uppercase' }}>No active study plan</h3>
+                <p style={{ color: 'var(--game-text-muted)', marginBottom: '2rem' }}>Let our AI analyze your skills and automatically build a personalized weekly schedule.</p>
                 <button
                   className="btn-primary"
-                  onClick={() => setShowAddTask(true)}
-                  style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', background: 'var(--accent-neon)', color: '#000', fontWeight: 'bold' }}
+                  onClick={handleGeneratePlan}
+                  disabled={generating}
+                  style={{
+                    padding: '1rem 2rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    background: 'var(--game-neon-blue)',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    boxShadow: '0 0 15px rgba(0, 255, 204, 0.4)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}
                 >
-                  Create Task
+                  {generating ? 'ANALYZING PROFILE & GENERATING PLAN...' : 'GENERATE AI STUDY PLAN'}
                 </button>
               </div>
             ) : filteredTasks.length === 0 ? (

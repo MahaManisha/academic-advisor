@@ -12,19 +12,30 @@ export const generateStudyPlan = async (userId, period = "weekly") => {
   const profile = await StudentProfile.findOne({ userId });
   const recommendations = await Recommendation.find({ userId });
 
-  if (!profile) return null;
-
   const tasks = [];
 
-  for (const skill of profile.skills) {
-    const minutes = estimateStudyTime(skill.level);
+  if (profile && profile.skills && profile.skills.length > 0) {
+    for (const skill of profile.skills) {
+      const minutes = estimateStudyTime(skill.level);
 
-    tasks.push({
-      title: `Practice ${skill.domain}`,
-      domain: skill.domain,
-      estimatedMinutes: minutes,
-      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-    });
+      tasks.push({
+        title: `Practice ${skill.domain}`,
+        domain: skill.domain,
+        estimatedMinutes: minutes,
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+      });
+    }
+  } else {
+    // Fallback if no profile is found or if skills array is empty
+    const defaultTopics = ["Data Structures", "Algorithms", "Web Development", "Database Management"];
+    for (const topic of defaultTopics) {
+      tasks.push({
+        title: `Master ${topic}`,
+        domain: topic,
+        estimatedMinutes: 60,
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+      });
+    }
   }
 
   // Deactivate old plans

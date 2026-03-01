@@ -9,6 +9,15 @@ export const getAllCourses = async () => {
     }
 };
 
+export const generateAIMissions = async () => {
+    try {
+        const response = await axios.post('/courses/generate');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
 export const createCourse = async (courseData) => {
     try {
         const response = await axios.post('/courses', courseData);

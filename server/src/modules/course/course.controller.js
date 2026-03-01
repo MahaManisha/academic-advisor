@@ -1,4 +1,6 @@
 import Course from "./course.model.js";
+import StudentProfile from "../studentProfile/studentProfile.model.js";
+import Groq from "groq-sdk";
 
 // Create a new course
 export const createCourse = async (req, res) => {
@@ -54,6 +56,85 @@ export const deleteCourse = async (req, res) => {
         if (!course) return res.status(404).json({ success: false, message: "Course not found" });
         res.json({ success: true, message: "Course deleted successfully" });
     } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Generate personalized quests/missions for a user using AI
+export const generateAIMissions = async (req, res) => {
+    try {
+        const userId = req.user?.id || req.user?.userId;
+        const profile = await StudentProfile.findOne({ userId });
+
+        // Let's create an AI client
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+        let focusStr = "General Computer Science and Soft Skills";
+        let skillStr = "basic analytical skills";
+
+        if (profile) {
+            focusStr = profile.focusArea || profile.interests?.join(", ") || focusStr;
+            skillStr = profile.skills?.map(s => `${s.domain} (${s.level})`).join(", ") || skillStr;
+        }
+
+        const prompt = `
+        You are an advanced Gamified Academic Assessment AI. 
+        The student focuses on: ${focusStr}.
+        Their current known skills are: ${skillStr}.
+        
+        Generate exactly 3 "Missions" (courses) to help them level up their skills.
+        Return ONLY valid JSON in this exact structure:
+        [
+          {
+            "name": "Mission Title",
+            "code": "SHORT-CODE",
+            "description": "Engaging mission briefing...",
+            "credits": 3,
+            "difficulty": "Intermediate",
+            "category": "Department Name"
+          }
+        ]
+        `;
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.7,
+            max_tokens: 1000,
+        });
+
+        const rawJsonText = completion.choices[0].message.content.trim();
+        const jsonMatch = rawJsonText.match(/\[[\s\S]*\]/);
+
+        if (!jsonMatch) {
+            throw new Error("Failed to parse AI response into JSON array.");
+        }
+
+        const newCourses = JSON.parse(jsonMatch[0]);
+
+        const savedCourses = [];
+        for (const c of newCourses) {
+            const existing = await Course.findOne({ name: c.name });
+            if (!existing) {
+                const created = await Course.create({
+                    name: c.name,
+                    code: c.code || "AI101",
+                    description: c.description || "Generated academic mission",
+                    credits: c.credits || 3,
+                    difficulty: c.difficulty || "Intermediate",
+                    category: c.category || "AI Generation",
+                    status: 'active'
+                });
+                savedCourses.push(created);
+            } else {
+                savedCourses.push(existing);
+            }
+        }
+
+        res.json({ success: true, data: savedCourses, message: "Custom AI Missions Deployed!" });
+
+    } catch (error) {
+        console.error("AI Mission Generation Error:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 };

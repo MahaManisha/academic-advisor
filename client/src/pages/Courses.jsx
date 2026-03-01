@@ -31,43 +31,60 @@ const Courses = () => {
   // State
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [generatingAI, setGeneratingAI] = useState(false);
+
+  const formatCourses = (rawCourses) => {
+    return rawCourses.map((c) => ({
+      id: c._id,
+      title: c.name,
+      code: c.code,
+      instructor: `Department of ${c.category || 'Science'}`,
+      progress: 0,
+      totalLessons: c.credits * 10,
+      completedLessons: 0,
+      duration: `${c.credits * 4} weeks`,
+      rating: 4.5,
+      status: 'active',
+      difficulty: c.difficulty,
+      description: c.description
+    }));
+  };
 
   // Fetch Courses
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const { getAllCourses } = await import('../api/course.api');
-        const res = await getAllCourses();
-        if (res.success) {
-          // Map backend data to UI format
-          // Backend: { name, code, difficulty, credits, category, ... }
-          // UI expects: { title, instructor, progress, ... }
-          // We will adapt the data. Instructor/Progress will be mock for now as we don't have enrollment logic distinct from course list yet.
-          const adaptedCourses = res.data.map((c) => ({
-            id: c._id,
-            title: c.name,
-            code: c.code,
-            instructor: `Department of ${c.category || 'Science'}`, // Placeholder
-            progress: 0, // Placeholder until enrollment is real
-            totalLessons: c.credits * 10, // Estimate
-            completedLessons: 0,
-            duration: `${c.credits * 4} weeks`,
-            rating: 4.5,
-            status: 'active', // Default to active availability
-            difficulty: c.difficulty,
-            description: c.description
-          }));
-          setCourses(adaptedCourses);
-        }
-      } catch (error) {
-        console.error("Failed to load courses", error);
-      } finally {
-        setLoading(false);
+  const loadCourses = async () => {
+    try {
+      setLoading(true);
+      const { getAllCourses } = await import('../api/course.api');
+      const res = await getAllCourses();
+      if (res.success) {
+        setCourses(formatCourses(res.data));
       }
-    };
-    fetchCourses();
+    } catch (error) {
+      console.error("Failed to load courses", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCourses();
   }, []);
+
+  const handleGenerateAIMissions = async () => {
+    try {
+      setGeneratingAI(true);
+      const { generateAIMissions } = await import('../api/course.api');
+      const res = await generateAIMissions();
+      if (res.success) {
+        setCourses(formatCourses(res.data));
+      }
+    } catch (error) {
+      console.error("Failed to generate AI missions", error);
+      alert("Error generating curriculum. Please try again.");
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
 
   const filteredCourses = courses.filter(course => {
     if (filter === 'all') return true;
@@ -153,25 +170,49 @@ const Courses = () => {
                 </div>
               </div>
 
-              {/* Filter */}
-              <div className="courses-filter">
+              {/* Filter & Actions */}
+              <div className="courses-filter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                    onClick={() => setFilter('all')}
+                  >
+                    All Quests
+                  </button>
+                  <button
+                    className={`filter-btn ${filter === 'ongoing' ? 'active' : ''}`}
+                    onClick={() => setFilter('ongoing')}
+                  >
+                    Active Quests
+                  </button>
+                  <button
+                    className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+                    onClick={() => setFilter('completed')}
+                  >
+                    Cleared Quests
+                  </button>
+                </div>
+
                 <button
-                  className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                  onClick={() => setFilter('all')}
+                  onClick={handleGenerateAIMissions}
+                  disabled={generatingAI}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'var(--game-neon-pink)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontFamily: 'var(--game-font-display)',
+                    fontWeight: 700,
+                    cursor: generatingAI ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 10px rgba(255, 0, 255, 0.4)',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
                 >
-                  All Quests
-                </button>
-                <button
-                  className={`filter-btn ${filter === 'ongoing' ? 'active' : ''}`}
-                  onClick={() => setFilter('ongoing')}
-                >
-                  Active Quests
-                </button>
-                <button
-                  className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-                  onClick={() => setFilter('completed')}
-                >
-                  Cleared Quests
+                  <FaStar /> {generatingAI ? 'MAPPING CURRICULUM...' : 'AUTO-GENERATE AI MISSIONS'}
                 </button>
               </div>
 
@@ -253,10 +294,28 @@ const Courses = () => {
               </div>
 
               {filteredCourses.length === 0 && (
-                <div className="empty-state">
-                  <FaBook className="empty-icon" />
-                  <h3>No Quests available</h3>
-                  <p>Check back later for new mission objectives!</p>
+                <div className="empty-state" style={{ textAlign: 'center', padding: '4rem' }}>
+                  <FaBook className="empty-icon" style={{ fontSize: '4rem', color: 'var(--game-neon-pink)', marginBottom: '1rem', filter: 'drop-shadow(0 0 10px rgba(255, 0, 255, 0.5))' }} />
+                  <h3 style={{ fontSize: '1.5rem', fontFamily: 'var(--game-font-display)', textTransform: 'uppercase' }}>No Quests available</h3>
+                  <p style={{ color: 'var(--game-text-muted)', marginBottom: '2rem' }}>Press the button to dynamically generate missions customized to your profile using AI.</p>
+                  <button
+                    onClick={handleGenerateAIMissions}
+                    disabled={generatingAI}
+                    style={{
+                      padding: '12px 24px',
+                      background: 'var(--game-neon-pink)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontFamily: 'var(--game-font-display)',
+                      fontWeight: 700,
+                      cursor: generatingAI ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 0 15px rgba(255, 0, 255, 0.5)',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    {generatingAI ? 'ANALYZING PROFILE & GENERATING ...' : 'AUTO-GENERATE AI MISSIONS'}
+                  </button>
                 </div>
               )}
             </>

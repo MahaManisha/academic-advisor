@@ -6,7 +6,8 @@ import {
     getAllCourses,
     getCourseById,
     updateCourse,
-    deleteCourse
+    deleteCourse,
+    generateAIMissions
 } from "./course.controller.js";
 
 const router = Router();
@@ -15,6 +16,7 @@ const router = Router();
 // We'll protect everything for safety first, then open up if needed.
 
 router.get("/", getAllCourses); // Allow all logged in users to see courses? Or just admin/students? Let's keep it open for now for Student View later.
+router.post("/generate", authMiddleware, generateAIMissions);
 router.get("/:id", getCourseById);
 
 // Admin Only
