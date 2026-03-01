@@ -4,6 +4,7 @@ import PublicRoute from './PublicRoute';
 import AdminRoute from './AdminRoute';
 
 // Public Pages
+import PageAnnouncer from '../components/PageAnnouncer';
 import Home from '../pages/Home';  // ✅ NEW
 import Login from '../pages/Login';
 import Register from '../pages/Register';
@@ -40,6 +41,7 @@ import NotFound from '../pages/NotFound';
 const AppRoutes = () => {
   return (
     <BrowserRouter>
+      <PageAnnouncer />
       <Routes>
         {/* ✅ NEW: Root redirects to home page */}
         <Route path="/" element={<Home />} />
