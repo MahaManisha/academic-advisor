@@ -99,8 +99,7 @@ const Courses = () => {
   };
 
   const handleCourseClick = (courseId) => {
-    // Navigate to course detail page
-    console.log("Navigating to quest:", courseId);
+    navigate(`/courses/${courseId}`);
   };
 
   return (

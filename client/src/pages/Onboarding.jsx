@@ -40,7 +40,6 @@ const Onboarding = () => {
 
   // Form State
   const [formData, setFormData] = useState({
-    subjects: {}, // { "Maths": 3, "Physics": 4 }
     interests: [],
     careerGoal: '',
     learningStyle: '',
@@ -59,12 +58,6 @@ const Onboarding = () => {
         const response = await getOnboardingQuestions();
         if (response.success) {
           setConfig(response.data);
-          // Initialize subjects with default middle value (3)
-          const initialSubjects = {};
-          response.data.subjects.forEach(sub => {
-            initialSubjects[sub] = 3;
-          });
-          setFormData(prev => ({ ...prev, subjects: initialSubjects }));
         }
       } catch (err) {
         console.error("Failed to load onboarding:", err);
@@ -101,10 +94,6 @@ const Onboarding = () => {
       setLoading(true);
       const payload = {
         ...formData,
-        subjects: Object.entries(formData.subjects).map(([name, proficiency]) => ({
-          name,
-          proficiency
-        }))
       };
 
       const result = await submitOnboarding(payload);
@@ -130,7 +119,7 @@ const Onboarding = () => {
       const { getAdaptiveQuestion } = await import('../api/onboarding.api');
 
       // Infer domain from chosen career or default
-      const domain = formData.careerGoal || "Computer Science";
+      const domain = user?.domain || user?.department || user?.qualification || "Technology";
       setOnboardingDomain(domain);
 
       const res = await getAdaptiveQuestion(domain, 3, null); // Start at diff 3
@@ -142,7 +131,6 @@ const Onboarding = () => {
         evaluations: [],
         finalScore: 0
       });
-      setCurrentStep(4);
     } catch (err) {
       console.error(err);
       setError("Failed to generate adaptive test.");
@@ -181,7 +169,6 @@ const Onboarding = () => {
       if (newCompleted >= 5) {
         // Done with 5 questions
         const avgScore = newEvaluations.reduce((acc, curr) => acc + curr.score, 0) / 5;
-        setAdaptiveSession(prev => ({ ...prev, active: false, finalScore: avgScore }));
 
         // Map the final score back to our generic selfAssessment form format
         setFormData(prev => ({
@@ -189,8 +176,11 @@ const Onboarding = () => {
           selfAssessment: { coding: Math.ceil(evalRes.nextDifficulty), problemSolving: Math.ceil(evalRes.nextDifficulty), math: 3 }
         }));
 
-        // Allow them to move to step 5 (submit)
-        setCurrentStep(5);
+        setTimeout(() => {
+          setAdaptiveSession(prev => ({ ...prev, active: false, questionsCompleted: 5, finalScore: avgScore }));
+          setFeedback(null);
+          setQuestionLoading(false);
+        }, 3000);
         return;
       }
 
@@ -219,44 +209,95 @@ const Onboarding = () => {
     } catch (err) {
       console.error(err);
       setError("Error checking answer");
+      setQuestionLoading(false);
     }
   };
 
   // --- RENDERERS ---
 
-  // Step 1: Subject Proficiency
-  const renderStep1 = () => (
-    <div className="onboarding-step fade-in">
-      <div className="step-header">
-        <span className="step-badge">Step 1 of 4</span>
-        <h2>Subject Proficiency</h2>
-        <p>Rate your comfort level with your semester subjects (1 = Beginner, 5 = Expert).</p>
-      </div>
+  // Step 1: Adaptive Knowledge Test
+  const renderStep1 = () => {
+    if (questionLoading && !feedback) return <div className="loading-spinner">Analyzing Domain & Generating...</div>;
 
-      <div className="subjects-grid">
-        {config?.subjects?.map((subject) => (
-          <div key={subject} className="subject-slider-row">
-            <div className="subject-label">{subject}</div>
-            <div className="slider-wrapper">
-              <input
-                type="range"
-                min="1"
-                max="5"
-                step="1"
-                value={formData.subjects[subject] || 3}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  subjects: { ...formData.subjects, [subject]: parseInt(e.target.value) }
-                })}
-                className="custom-range"
-              />
-              <div className="slider-value">{formData.subjects[subject] || 3}/5</div>
-            </div>
+    if (!adaptiveSession.active && adaptiveSession.questionsCompleted === 0) {
+      const uDomain = user?.domain || user?.department || user?.qualification || "Technology";
+      return (
+        <div className="onboarding-step fade-in text-center">
+          <div className="step-header">
+            <span className="step-badge">Step 1 of 4</span>
           </div>
-        ))}
+          <h2>Adaptive Diagnostic Test</h2>
+          <p>We're going to ask you up to 5 quick questions based on your academic path ({uDomain}) to test your conceptual depth.</p>
+          {user?.syllabusUrl && (
+            <p style={{ color: '#4ade80', marginTop: '10px' }}>
+              <FaCheckCircle style={{ display: 'inline', marginRight: '5px' }} />
+              We found your college syllabus! The test will be aligned with your curriculum.
+            </p>
+          )}
+          <p style={{ marginTop: '15px' }}>The difficulty will scale dynamically based on your answers!</p>
+          <button className="btn-primary-large mt-4" onClick={startAdaptiveTest}>
+            Start Diagnostic <FaBrain />
+          </button>
+        </div>
+      );
+    }
+
+    if (!adaptiveSession.active && adaptiveSession.questionsCompleted >= 5) {
+      return (
+        <div className="onboarding-step fade-in text-center">
+          <h2>Diagnostic Complete!</h2>
+          <p style={{ fontSize: '24px', margin: '20px 0' }}>Your average score: <strong>{Math.round(adaptiveSession.finalScore * 100)}%</strong></p>
+          <p>We've successfully calibrated your academic baseline profile.</p>
+          <p style={{ color: '#a78bfa', marginTop: '10px' }}>Click Next to continue with your preferences.</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="onboarding-step fade-in">
+        <div className="step-header">
+          <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5 (Level {Math.round(adaptiveSession.currentDifficulty)})</span>
+          <h2>{adaptiveSession.currentQuestion?.question}</h2>
+          <p>Take your time and explain your answer clearly.</p>
+        </div>
+
+        {feedback && (
+          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`} style={{ position: 'relative' }}>
+            {feedback.xpGained > 0 && <div className="g-floating-xp" style={{ top: -20, right: 20 }}>+{feedback.xpGained} XP</div>}
+            <h4>Score: {Math.round(feedback.score * 100)}%</h4>
+            <p>{feedback.conceptStrength}</p>
+            {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}
+            <p><em>{adaptiveSession.questionsCompleted >= 4 ? 'Evaluating final results...' : 'Generating next question...'}</em></p>
+          </div>
+        )}
+
+        {!feedback && adaptiveSession.currentQuestion?.options && adaptiveSession.currentQuestion.options.length > 0 ? (
+          <div className="options-grid">
+            {adaptiveSession.currentQuestion.options.map(opt => (
+              <div key={opt} className={`option-row ${studentAnswer === opt ? 'selected' : ''}`} onClick={() => setStudentAnswer(opt)}>
+                <div className="radio-circle">
+                  {studentAnswer === opt && <div className="inner-circle" />}
+                </div>
+                <span>{opt}</span>
+              </div>
+            ))}
+            <button className="btn-primary mt-4" disabled={!studentAnswer} onClick={handleAdaptiveSubmit}>Submit Answer</button>
+          </div>
+        ) : !feedback && (
+          <div className="text-area-submit">
+            <textarea
+              className="w-full p-4 border rounded"
+              rows="4"
+              placeholder="Type your answer here..."
+              value={studentAnswer}
+              onChange={(e) => setStudentAnswer(e.target.value)}
+            ></textarea>
+            <button className="btn-primary mt-4" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>Submit Answer</button>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    )
+  };
 
   // Step 2: Interests
   const renderStep2 = () => (
@@ -331,71 +372,8 @@ const Onboarding = () => {
     </div>
   );
 
-  // Step 4: Adaptive Knowledge Test
-  const renderStep4 = () => {
-    if (questionLoading && !feedback) return <div className="loading-spinner">Analyzing Domain & Generating...</div>;
-
-    if (!adaptiveSession.active) {
-      return (
-        <div className="onboarding-step fade-in text-center">
-          <h2>Adaptive Diagnostic Test</h2>
-          <p>We're going to ask you up to 5 quick questions based on your career goal ({formData.careerGoal || 'Technology'}) to test your conceptual depth.</p>
-          <p>The difficulty will change dynamically based on your answers!</p>
-          <button className="btn-primary-large mt-4" onClick={startAdaptiveTest}>
-            Start Diagnostic <FaBrain />
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="onboarding-step fade-in">
-        <div className="step-header">
-          <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5 (Level {adaptiveSession.currentDifficulty})</span>
-          <h2>{adaptiveSession.currentQuestion?.question}</h2>
-          <p>Take your time and explain your answer clearly.</p>
-        </div>
-
-        {feedback && (
-          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`} style={{ position: 'relative' }}>
-            {feedback.xpGained > 0 && <div className="g-floating-xp" style={{ top: -20, right: 20 }}>+{feedback.xpGained} XP</div>}
-            <h4>Score: {Math.round(feedback.score * 100)}%</h4>
-            <p>{feedback.conceptStrength}</p>
-            {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}
-            <p><em>Generating next question...</em></p>
-          </div>
-        )}
-
-        {!feedback && adaptiveSession.currentQuestion?.options && adaptiveSession.currentQuestion.options.length > 0 ? (
-          <div className="options-grid">
-            {adaptiveSession.currentQuestion.options.map(opt => (
-              <div key={opt} className={`option-row ${studentAnswer === opt ? 'selected' : ''}`} onClick={() => setStudentAnswer(opt)}>
-                <div className="radio-circle">
-                  {studentAnswer === opt && <div className="inner-circle" />}
-                </div>
-                <span>{opt}</span>
-              </div>
-            ))}
-            <button className="btn-primary mt-4" disabled={!studentAnswer} onClick={handleAdaptiveSubmit}>Submit Answer</button>
-          </div>
-        ) : !feedback && (
-          <div className="text-area-submit">
-            <textarea
-              className="w-full p-4 border rounded"
-              rows="4"
-              placeholder="Type your answer here..."
-              value={studentAnswer}
-              onChange={(e) => setStudentAnswer(e.target.value)}
-            ></textarea>
-            <button className="btn-primary mt-4" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>Submit Answer</button>
-          </div>
-        )}
-      </div>
-    )
-  };
-
-  // Step 5: Final Submission
-  const renderStep5 = () => (
+  // Step 4: Final Submission
+  const renderStep4 = () => (
     <div className="onboarding-step fade-in text-center">
       <h2>Great Job!</h2>
       <p>We've calibrated our system based on your proficiency. Click below to launch your dashboard!</p>
@@ -435,21 +413,20 @@ const Onboarding = () => {
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
-          {currentStep === 5 && renderStep5()}
         </div>
 
         <div className="navigation-footer">
           <button
             className="btn-text"
             onClick={handleBack}
-            disabled={currentStep === 1}
+            disabled={currentStep === 1 || (currentStep === 1 && adaptiveSession.active)}
             style={{ visibility: currentStep === 1 ? 'hidden' : 'visible' }}
           >
             <FaArrowLeft /> Back
           </button>
 
           <div className="step-dots">
-            {[1, 2, 3, 4, 5].map(s => (
+            {[1, 2, 3, 4].map(s => (
               <div key={s} className={`dot ${s === currentStep ? 'active' : ''} ${s < currentStep ? 'completed' : ''}`} />
             ))}
           </div>
@@ -459,6 +436,8 @@ const Onboarding = () => {
               className="btn-primary"
               onClick={handleNext}
               disabled={
+                (currentStep === 1 && (!adaptiveSession.active && adaptiveSession.questionsCompleted < 5)) ||
+                (currentStep === 1 && adaptiveSession.active) ||
                 (currentStep === 2 && formData.interests.length === 0) ||
                 (currentStep === 3 && (!formData.careerGoal || !formData.learningStyle))
               }

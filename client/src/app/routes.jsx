@@ -29,6 +29,7 @@ import StudyPlanner from '../pages/StudyPlanner';
 import AdvisorChat from '../pages/AdvisorChat';
 import PeerChat from '../pages/PeerChat';
 import Courses from '../pages/Courses';
+import MissionDetail from '../pages/MissionDetail';
 import Settings from '../pages/Settings';
 import AdminSettings from '../pages/AdminSettings';
 import AdminStudentView from '../pages/AdminStudentView';
@@ -238,6 +239,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Courses />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/courses/:id"
+          element={
+            <ProtectedRoute>
+              <MissionDetail />
             </ProtectedRoute>
           }
         />

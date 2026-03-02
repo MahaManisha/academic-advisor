@@ -47,8 +47,13 @@ const Login = () => {
         navigate('/admin/dashboard');
       } else {
         await triggerAction('DAILY_LOGIN');
-        // Always navigate to dashboard, bypassing onboarding
-        navigate('/dashboard');
+
+        // Redirect to onboarding if not completed
+        if (!result.user.onboardingCompleted) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       if (err.message && err.message.includes('verify')) {

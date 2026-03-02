@@ -13,10 +13,10 @@ const PublicRoute = ({ children }) => {
             return <Navigate to="/admin/dashboard" replace />;
         }
 
-        // Let verified students complete onboarding -> Disabled, allow dashboard access
-        // if (user?.emailVerified && !user?.onboardingCompleted) {
-        //     return <Navigate to="/onboarding" replace />;
-        // }
+        // Let verified students complete onboarding
+        if (user?.emailVerified && !user?.onboardingCompleted) {
+            return <Navigate to="/onboarding" replace />;
+        }
 
         return <Navigate to="/dashboard" replace />;
     }

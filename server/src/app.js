@@ -8,6 +8,15 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
+// Set CORS properly before other middlewares
+app.use(cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+app.use(express.json());
+
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
@@ -17,9 +26,6 @@ const limiter = rateLimit({
 
 app.use(helmet());
 app.use(limiter);
-
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
-app.use(express.json());
 
 app.use("/api", routes);
 

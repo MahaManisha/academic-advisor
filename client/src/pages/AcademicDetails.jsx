@@ -150,9 +150,9 @@ const AcademicDetails = () => {
                 localStorage.removeItem('academicType');
                 sessionStorage.removeItem('registrationToken');
 
-                // Navigate to next step (Assessment Intro)
+                // Navigate to next step (Onboarding)
                 // Since completeSignup logs us in, we can access protected routes
-                navigate('/assessment-intro');
+                navigate('/onboarding');
 
             } catch (err) {
                 console.error(err);
