@@ -74,8 +74,8 @@ const AdminDashboard = () => {
         showSearch={false}
       />
 
-      <main className="dashboard-main">
-        <div className="main-content">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper">
 
           {/* KPI Cards */}
           <div className="stats-grid">

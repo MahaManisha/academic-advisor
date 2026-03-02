@@ -83,8 +83,8 @@ const Settings = () => {
         showSearch={false}
       />
 
-      <main className="dashboard-main">
-        <div className="main-content">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper">
           <div className="settings-container">
             {/* Settings Navigation */}
             <div className="settings-nav">

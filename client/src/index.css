@@ -99,4 +99,57 @@ select {
 * {
   -webkit-tap-highlight-color: transparent;
 }
- /* Tailwind Fallback Utilities */ \n .flex-1 { flex: 1 1 0%; } \n .flex { display: flex; } \n .justify-center { justify-content: center; } \n .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } \n .w-full { width: 100%; } \n .max-w-7xl { max-width: 80rem; } \n.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Global Layout Utilities */
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-7xl {
+  max-width: 1400px;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.centered-main-layout {
+  display: flex !important;
+  justify-content: center !important;
+  flex: 1 !important;
+  width: 100% !important;
+  padding: 0 1.5rem !important;
+}
+
+.centered-content-wrapper {
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

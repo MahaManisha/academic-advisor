@@ -1,0 +1,138 @@
+/* client/src/components/PageAnnouncer.css */
+
+.announcer-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 12px;
+}
+
+.announcer-menu {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    padding: 10px 16px;
+    border-radius: 50px;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.announcer-menu-btn {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.announcer-menu-btn:hover {
+    background: rgba(0, 255, 204, 0.1);
+    color: var(--game-neon-blue, #00ffcc);
+}
+
+.announcer-menu-btn.active {
+    background: rgba(0, 255, 204, 0.15);
+    color: var(--game-neon-blue, #00ffcc);
+    border: 1px solid var(--game-neon-blue, #00ffcc);
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+}
+
+.announcer-fab {
+    padding: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 255, 204, 0.5);
+    background: rgba(13, 17, 23, 0.9);
+    color: var(--game-neon-blue, #00ffcc);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.announcer-fab:hover:not(:active) {
+    background: rgba(0, 255, 204, 0.1);
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+}
+
+.announcer-fab.playing {
+    background: var(--game-neon-blue, #00ffcc);
+    color: var(--game-bg-main, #0d1117);
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 10px var(--game-neon-blue, #00ffcc);
+    }
+
+    50% {
+        box-shadow: 0 0 30px var(--game-neon-blue, #00ffcc), inset 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 10px var(--game-neon-blue, #00ffcc);
+    }
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.announcer-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 15px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    z-index: 10000;
+}
+
+.announcer-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 255, 204, 0.3) transparent transparent transparent;
+}
+
+.announcer-menu-btn:hover .announcer-tooltip {
+    opacity: 1;
+    margin-bottom: 10px;
+}

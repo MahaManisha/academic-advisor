@@ -371,8 +371,8 @@ const PeerChat = () => {
         showSearch={false}
       />
 
-      <main className="dashboard-main">
-        <div className="main-content peer-chat-content">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper peer-chat-content">
           <div className="peer-chat-container">
             {/* ─── Peers Sidebar ─── */}
             <div className="peers-sidebar">

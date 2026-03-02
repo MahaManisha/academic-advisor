@@ -255,10 +255,14 @@ const Onboarding = () => {
 
     return (
       <div className="onboarding-step fade-in">
-        <div className="step-header">
-          <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5 (Level {Math.round(adaptiveSession.currentDifficulty)})</span>
-          <h2>{adaptiveSession.currentQuestion?.question}</h2>
-          <p>Take your time and explain your answer clearly.</p>
+        <div className="diagnostic-question-container">
+          <div className="diagnostic-question-header">
+            <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5</span>
+            <span className="difficulty-badge">Level {Math.round(adaptiveSession.currentDifficulty)}</span>
+          </div>
+          <div className="diagnostic-question-content">
+            <p>{adaptiveSession.currentQuestion?.question}</p>
+          </div>
         </div>
 
         {feedback && (
@@ -284,15 +288,22 @@ const Onboarding = () => {
             <button className="btn-primary mt-4" disabled={!studentAnswer} onClick={handleAdaptiveSubmit}>Submit Answer</button>
           </div>
         ) : !feedback && (
-          <div className="text-area-submit">
+          <div className="diagnostic-textarea-wrapper">
+            <p style={{ color: "var(--game-text-muted)", fontSize: "14px", fontStyle: "italic", marginBottom: "8px", marginLeft: "4px" }}>
+              Take your time and explain your answer clearly to bypass the security wall...
+            </p>
             <textarea
-              className="w-full p-4 border rounded"
-              rows="4"
-              placeholder="Type your answer here..."
+              className="diagnostic-textarea"
+              rows="5"
+              placeholder="Type your analytical response here..."
               value={studentAnswer}
               onChange={(e) => setStudentAnswer(e.target.value)}
             ></textarea>
-            <button className="btn-primary mt-4" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>Submit Answer</button>
+            <div className="diagnostic-submit-wrapper">
+              <button className="btn-primary diagnostic-submit-btn" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>
+                SUBMIT PROTOCOL <FaRocket />
+              </button>
+            </div>
           </div>
         )}
       </div>

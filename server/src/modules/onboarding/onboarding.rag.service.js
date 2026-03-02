@@ -1,6 +1,6 @@
-// server/src/modules/onboarding/onboarding.rag.service.js
 import Groq from "groq-sdk";
 import { getQuestionGenerationPrompt, getAnswerEvaluationPrompt } from "./onboarding.prompt.js";
+import { scrapeSyllabus } from "../../utils/scrape.service.js";
 
 const getGroqClient = () => {
     if (!process.env.GROQ_API_KEY) {
@@ -20,15 +20,27 @@ const getMockSyllabusContext = (domain) => {
     return contexts[domain] || contexts["default"];
 };
 
-export const retrieveSyllabusChunks = async (domain, previousAnalysis, difficulty) => {
-    // In a real RAG setup, we query a vector DB (e.g., Pinecone or Chroma) using embeddings computed from 'previousAnalysis.weaknesses' or domain name.
-    // Here we'll mock the retrieval step.
+export const retrieveSyllabusChunks = async (domain, previousAnalysis, difficulty, syllabusUrl = null) => {
+    // If we have a given syllabus, use it as context. 
+    if (syllabusUrl) {
+        try {
+            const contextText = await scrapeSyllabus(syllabusUrl);
+            if (contextText && contextText.trim().length > 50) {
+                // Slice it to ~4000 characters to fit well within Groq's prompt limits for fast inference
+                return `[LIVE SYLLABUS CONTEXT]:\n${contextText.slice(0, 4000)}\n\n[USER DOMAIN FOCUS]: ${domain}`;
+            }
+        } catch (error) {
+            console.error("Failed to fetch custom syllabus for adaptive context. Using fallback.", error.message);
+        }
+    }
+
+    // Fallback if no URL or if scraping fails.
     return getMockSyllabusContext(domain);
 };
 
-export const generateAdaptiveQuestion = async (domain, difficultyLevel, previousAnalysis = null, accessibilityPrefs = {}) => {
+export const generateAdaptiveQuestion = async (domain, difficultyLevel, previousAnalysis = null, accessibilityPrefs = {}, syllabusUrl = null) => {
     try {
-        const retrievedChunks = await retrieveSyllabusChunks(domain, previousAnalysis, difficultyLevel);
+        const retrievedChunks = await retrieveSyllabusChunks(domain, previousAnalysis, difficultyLevel, syllabusUrl);
         const prompt = getQuestionGenerationPrompt(retrievedChunks, previousAnalysis, difficultyLevel, domain, accessibilityPrefs);
 
         const groq = getGroqClient();
@@ -47,9 +59,9 @@ export const generateAdaptiveQuestion = async (domain, difficultyLevel, previous
     }
 };
 
-export const evaluateAdaptiveAnswer = async (domain, question, studentAnswer) => {
+export const evaluateAdaptiveAnswer = async (domain, question, studentAnswer, syllabusUrl = null) => {
     try {
-        const retrievedChunks = await retrieveSyllabusChunks(domain, null, question.difficulty);
+        const retrievedChunks = await retrieveSyllabusChunks(domain, null, question.difficulty, syllabusUrl);
         const prompt = getAnswerEvaluationPrompt(retrievedChunks, question, studentAnswer);
 
         const groq = getGroqClient();

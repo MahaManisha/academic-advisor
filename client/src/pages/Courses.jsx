@@ -117,8 +117,8 @@ const Courses = () => {
         subtitle="Review your assigned mission parameters."
       />
 
-      <main className="dashboard-main flex-1 flex justify-center px-6">
-        <div className="main-content w-full max-w-7xl">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper">
           {loading ? (
             <div className="loading-state">
               <div className="loader-ring"></div>

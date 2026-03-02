@@ -44,14 +44,16 @@ export const getAdaptiveQuestion = async (req, res) => {
         const level = difficulty || 3;
 
         let accessibilityPrefs = {};
+        let syllabusUrl = null;
         if (req.user && (req.user.id || req.user.userId)) {
             const user = await User.findById(req.user.id || req.user.userId);
-            if (user && user.accessibilityPreferences) {
-                accessibilityPrefs = user.accessibilityPreferences;
+            if (user) {
+                accessibilityPrefs = user.accessibilityPreferences || {};
+                syllabusUrl = user.syllabusUrl || null;
             }
         }
 
-        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis, accessibilityPrefs);
+        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis, accessibilityPrefs, syllabusUrl);
 
         res.status(200).json({
             success: true,
@@ -68,7 +70,13 @@ export const evaluateAdaptiveAnswer = async (req, res) => {
     try {
         const { domain, question, answer } = req.body;
 
-        const evaluation = await ragService.evaluateAdaptiveAnswer(domain, question, answer);
+        let syllabusUrl = null;
+        if (req.user && (req.user.id || req.user.userId)) {
+            const user = await User.findById(req.user.id || req.user.userId);
+            if (user) syllabusUrl = user.syllabusUrl || null;
+        }
+
+        const evaluation = await ragService.evaluateAdaptiveAnswer(domain, question, answer, syllabusUrl);
 
         // Dynamically adjust difficulty based on performance
         let nextDifficulty = question.difficulty;

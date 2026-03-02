@@ -72,19 +72,19 @@ const Assessments = () => {
   };
 
   return (
-    <div className="assessments-page">
+    <div className="dashboard-container">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} user={user} />
 
-      <main className="assessments-main">
-        <Header
-          title="Assessments"
-          subtitle={`${filteredAssessments.length} assessments available`}
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-          onLogout={handleLogout}
-          showSearch={true}
-        />
+      <Header
+        title="Assessments"
+        subtitle={`${filteredAssessments.length} assessments available`}
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        onLogout={handleLogout}
+        showSearch={true}
+      />
 
-        <div className="assessments-container">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper">
           {/* Stats Section */}
           <section className="assessments-stats">
             <div className="stat-card">

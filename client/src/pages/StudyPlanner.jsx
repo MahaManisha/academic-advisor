@@ -159,8 +159,8 @@ const StudyPlanner = () => {
         subtitle="Organize your study schedule"
       />
 
-      <main className="dashboard-main">
-        <div className="main-content">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper">
           {/* Stats */}
           <div className="stats-grid">
             <div className="stat-card">

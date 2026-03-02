@@ -225,8 +225,8 @@ const AdvisorChat = () => {
         showSearch={false}
       />
 
-      <main className="dashboard-main">
-        <div className="main-content chat-content">
+      <main className="dashboard-main centered-main-layout">
+        <div className="centered-content-wrapper chat-content">
           <div className="chat-container">
             {/* Quick Questions */}
             {messages.length === 1 && (
