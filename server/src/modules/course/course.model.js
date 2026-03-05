@@ -2,22 +2,28 @@ import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
     {
-        name: {
+        title: {
             type: String,
             required: true,
-            trim: true,
-            unique: true
+            trim: true
+        },
+        name: {
+            type: String,
+            trim: true
         },
         code: {
             type: String,
-            required: true,
-            trim: true, // e.g., 'CS101'
+            trim: true,
             uppercase: true
         },
         description: {
             type: String,
             trim: true
         },
+        thumbnail: { type: String },
+        instructor: { type: String },
+        duration: { type: String },
+        videoUrl: { type: String },
         credits: {
             type: Number,
             default: 3
@@ -28,11 +34,11 @@ const courseSchema = new mongoose.Schema(
             default: 'Intermediate'
         },
         category: {
-            type: String, // e.g., 'Computer Science', 'Mathematics'
-            required: true
+            type: String,
+            default: 'General'
         },
         status: {
-            type: String, // 'active', 'archived'
+            type: String,
             default: 'active'
         }
     },

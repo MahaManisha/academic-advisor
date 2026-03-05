@@ -27,27 +27,47 @@ const Courses = () => {
     navigate('/login');
   };
 
-  // Mock data - Replace with actual API calls
   // State
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
+  // Video utilities
+  const getThumbnailUrl = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+    return match && match[1] ? `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg` : null;
+  };
+
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+    return match && match[1] ? `https://www.youtube.com/embed/${match[1]}` : url;
+  };
 
   const formatCourses = (rawCourses) => {
-    return rawCourses.map((c) => ({
-      id: c._id,
-      title: c.name,
-      code: c.code,
-      instructor: `Department of ${c.category || 'Science'}`,
-      progress: 0,
-      totalLessons: c.credits * 10,
-      completedLessons: 0,
-      duration: `${c.credits * 4} weeks`,
-      rating: 4.5,
-      status: 'active',
-      difficulty: c.difficulty,
-      description: c.description
-    }));
+    return rawCourses.map((c) => {
+      let thumb = c.thumbnail;
+      if (!thumb && c.videoUrl) thumb = getThumbnailUrl(c.videoUrl);
+
+      return {
+        id: c._id,
+        title: c.title || c.name || "Untitled Course",
+        code: c.code,
+        instructor: c.instructor || `Department of ${c.category || 'Science'}`,
+        thumbnail: thumb,
+        videoUrl: c.videoUrl,
+        progress: 0,
+        totalLessons: c.credits ? c.credits * 10 : 30,
+        completedLessons: 0,
+        duration: c.duration || (c.credits ? `${c.credits * 4} weeks` : '4 weeks'),
+        rating: 4.5,
+        status: c.status || 'active',
+        difficulty: c.difficulty || 'Intermediate',
+        description: c.description || "No description provided."
+      };
+    });
   };
 
   // Fetch Courses
@@ -250,11 +270,14 @@ const Courses = () => {
                       </p>
                       <p className="course-description">{course.description}</p>
 
-                      <div className="course-meta">
-                        <span className="course-difficulty badge" style={{ background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>
+                      <div className="course-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        <span className="course-difficulty badge" style={{ background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
                           Lvl: {course.difficulty}
                         </span>
-                        <span className="course-rating">
+                        <span className="course-duration badge" style={{ background: 'rgba(0, 255, 204, 0.15)', color: '#00ffcc', border: '1px solid #00ffcc', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                          <FaClock style={{ marginRight: '4px', display: 'inline' }} /> {course.duration}
+                        </span>
+                        <span className="course-rating" style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold' }}>
                           <FaStar /> {course.rating}
                         </span>
                       </div>
@@ -276,14 +299,21 @@ const Courses = () => {
                       </div>
 
                       <button
-                        className="btn-continue"
-                        onClick={() => handleCourseClick(course.id)}
+                        className="btn-watch-video"
+                        onClick={() => {
+                          if (course.videoUrl) setSelectedVideo(course.videoUrl);
+                          else handleCourseClick(course.id);
+                        }}
                       >
-                        {course.status === 'completed' ? (
+                        {course.videoUrl ? (
+                          <>
+                            <FaPlay style={{ fontSize: '12px' }} /> Watch Video
+                          </>
+                        ) : course.status === 'completed' ? (
                           'Review Data'
                         ) : (
                           <>
-                            <FaPlay style={{ fontSize: '10px' }} /> Initiate Sequence
+                            <FaPlay style={{ fontSize: '12px' }} /> Initiate Sequence
                           </>
                         )}
                       </button>
@@ -321,6 +351,23 @@ const Courses = () => {
           )}
         </div>
       </main>
+
+      {/* Video Modal Overhead */}
+      {selectedVideo && (
+        <div className="video-modal-overlay" onClick={() => setSelectedVideo(null)}>
+          <div className="video-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-modal-btn" onClick={() => setSelectedVideo(null)}>×</button>
+            <iframe
+              width="100%"
+              height="400"
+              src={getEmbedUrl(selectedVideo)}
+              title="YouTube video player"
+              frameBorder="0"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -86,12 +86,17 @@ export const generateAIMissions = async (req, res) => {
         Return ONLY valid JSON in this exact structure:
         [
           {
+            "title": "Mission Title",
             "name": "Mission Title",
             "code": "SHORT-CODE",
             "description": "Engaging mission briefing...",
             "credits": 3,
             "difficulty": "Intermediate",
-            "category": "Department Name"
+            "category": "Department Name",
+            "instructor": "Instructor Name",
+            "duration": "Duration (e.g., 2h 30m)",
+            "videoUrl": "https://www.youtube.com/watch?v=kqtD5dpn9C8",
+            "thumbnail": "https://img.youtube.com/vi/kqtD5dpn9C8/maxresdefault.jpg"
           }
         ]
         `;
@@ -114,15 +119,20 @@ export const generateAIMissions = async (req, res) => {
 
         const savedCourses = [];
         for (const c of newCourses) {
-            const existing = await Course.findOne({ name: c.name });
+            const existing = await Course.findOne({ $or: [{ name: c.name }, { title: c.name }] });
             if (!existing) {
                 const created = await Course.create({
-                    name: c.name,
+                    title: c.title || c.name,
+                    name: c.title || c.name,
                     code: c.code || "AI101",
                     description: c.description || "Generated academic mission",
                     credits: c.credits || 3,
                     difficulty: c.difficulty || "Intermediate",
                     category: c.category || "AI Generation",
+                    instructor: c.instructor,
+                    duration: c.duration,
+                    videoUrl: c.videoUrl,
+                    thumbnail: c.thumbnail,
                     status: 'active'
                 });
                 savedCourses.push(created);
