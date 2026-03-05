@@ -7,7 +7,8 @@ import {
     getCourseById,
     updateCourse,
     deleteCourse,
-    generateAIMissions
+    generateAIMissions,
+    generateVideoAssessment
 } from "./course.controller.js";
 
 const router = Router();
@@ -17,10 +18,11 @@ const router = Router();
 
 router.get("/", getAllCourses); // Allow all logged in users to see courses? Or just admin/students? Let's keep it open for now for Student View later.
 router.post("/generate", authMiddleware, generateAIMissions);
+router.post("/:id/assessment", authMiddleware, generateVideoAssessment);
 router.get("/:id", getCourseById);
 
-// Admin Only
-router.post("/", authMiddleware, roleMiddleware("admin"), createCourse);
+// Course creation available to all auth users (to save AI courses)
+router.post("/", authMiddleware, createCourse);
 router.put("/:id", authMiddleware, roleMiddleware("admin"), updateCourse);
 router.delete("/:id", authMiddleware, roleMiddleware("admin"), deleteCourse);
 

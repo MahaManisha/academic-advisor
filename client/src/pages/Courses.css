@@ -135,6 +135,32 @@
   margin: 0 0 16px 0;
 }
 
+.course-recommendation {
+  background: rgba(0, 255, 204, 0.05);
+  border-left: 3px solid var(--game-neon-blue);
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 0 8px 8px 0;
+}
+
+.course-recommendation strong {
+  display: block;
+  font-size: 11px;
+  font-family: var(--game-font-display);
+  color: var(--game-neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.course-recommendation p {
+  font-size: 13px;
+  color: var(--game-text-primary);
+  margin: 0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
 .course-meta {
   display: flex;
   gap: 16px;

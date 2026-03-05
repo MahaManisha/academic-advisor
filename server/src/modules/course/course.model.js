@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema(
     {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: false // Optional for backward compatibility with global courses
+        },
         title: {
             type: String,
             required: true,
@@ -24,6 +29,7 @@ const courseSchema = new mongoose.Schema(
         instructor: { type: String },
         duration: { type: String },
         videoUrl: { type: String },
+        recommendationReason: { type: String },
         credits: {
             type: Number,
             default: 3

@@ -27,6 +27,15 @@ export const generateAIMissions = async () => {
     }
 };
 
+export const generateCourseAssessment = async (id) => {
+    try {
+        const response = await axios.post(`/courses/${id}/assessment`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
 export const createCourse = async (courseData) => {
     try {
         const response = await axios.post('/courses', courseData);

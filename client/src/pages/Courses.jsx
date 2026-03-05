@@ -31,6 +31,7 @@ const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [generatingAssessmentId, setGeneratingAssessmentId] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   // Video utilities
@@ -52,7 +53,7 @@ const Courses = () => {
       if (!thumb && c.videoUrl) thumb = getThumbnailUrl(c.videoUrl);
 
       return {
-        id: c._id,
+        id: c._id || `temp-${Math.random().toString(36).substring(2, 10)}`,
         title: c.title || c.name || "Untitled Course",
         code: c.code,
         instructor: c.instructor || `Department of ${c.category || 'Science'}`,
@@ -65,7 +66,8 @@ const Courses = () => {
         rating: 4.5,
         status: c.status || 'active',
         difficulty: c.difficulty || 'Intermediate',
-        description: c.description || "No description provided."
+        description: c.description || "No description provided.",
+        recommendationReason: c.recommendationReason
       };
     });
   };
@@ -106,8 +108,40 @@ const Courses = () => {
     }
   };
 
+  const handleAddCourse = async (course) => {
+    try {
+      const { createCourse } = await import('../api/course.api');
+      const payload = {
+        title: course.title,
+        name: course.name || course.title,
+        code: course.code,
+        description: course.description,
+        credits: course.credits || 3,
+        difficulty: course.difficulty,
+        category: course.category,
+        instructor: course.instructor,
+        duration: course.duration,
+        videoUrl: course.videoUrl,
+        thumbnail: course.thumbnail,
+        recommendationReason: course.recommendationReason,
+        status: 'active'
+      };
+
+      const res = await createCourse(payload);
+      if (res.success) {
+        setCourses(prev => prev.map(c =>
+          c.id === course.id ? { ...c, id: res.data._id, status: 'active' } : c
+        ));
+        setFilter('ongoing');
+      }
+    } catch (error) {
+      console.error("Failed to add course:", error);
+      alert("Failed to add the course to your quests.");
+    }
+  };
+
   const filteredCourses = courses.filter(course => {
-    if (filter === 'all') return true;
+    if (filter === 'all') return course.status !== 'suggested'; // don't show suggestions in All
     return course.status === filter;
   });
 
@@ -210,6 +244,12 @@ const Courses = () => {
                   >
                     Cleared Quests
                   </button>
+                  <button
+                    className={`filter-btn ${filter === 'suggested' ? 'active' : ''}`}
+                    onClick={() => setFilter('suggested')}
+                  >
+                    Discover Recommendations
+                  </button>
                 </div>
 
                 <button
@@ -269,6 +309,12 @@ const Courses = () => {
                         <FaGraduationCap /> {course.instructor}
                       </p>
                       <p className="course-description">{course.description}</p>
+                      {course.recommendationReason && (
+                        <div className="course-recommendation">
+                          <strong>Why this course?</strong>
+                          <p>{course.recommendationReason}</p>
+                        </div>
+                      )}
 
                       <div className="course-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         <span className="course-difficulty badge" style={{ background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
@@ -298,25 +344,35 @@ const Courses = () => {
                         </div>
                       </div>
 
-                      <button
-                        className="btn-watch-video"
-                        onClick={() => {
-                          if (course.videoUrl) setSelectedVideo(course.videoUrl);
-                          else handleCourseClick(course.id);
-                        }}
-                      >
-                        {course.videoUrl ? (
-                          <>
-                            <FaPlay style={{ fontSize: '12px' }} /> Watch Video
-                          </>
-                        ) : course.status === 'completed' ? (
-                          'Review Data'
-                        ) : (
-                          <>
-                            <FaPlay style={{ fontSize: '12px' }} /> Initiate Sequence
-                          </>
-                        )}
-                      </button>
+                      {course.status === 'suggested' ? (
+                        <button
+                          className="btn-watch-video"
+                          style={{ background: 'var(--game-neon-pink)', borderColor: 'var(--game-neon-pink)', color: '#fff' }}
+                          onClick={() => handleAddCourse(course)}
+                        >
+                          <FaStar style={{ fontSize: '12px' }} /> Add to My Courses
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-watch-video"
+                          onClick={() => {
+                            if (course.videoUrl) setSelectedVideo(course);
+                            else handleCourseClick(course.id);
+                          }}
+                        >
+                          {course.videoUrl ? (
+                            <>
+                              <FaPlay style={{ fontSize: '12px' }} /> Watch Video
+                            </>
+                          ) : course.status === 'completed' ? (
+                            'Review Data'
+                          ) : (
+                            <>
+                              <FaPlay style={{ fontSize: '12px' }} /> Initiate Sequence
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -360,11 +416,41 @@ const Courses = () => {
             <iframe
               width="100%"
               height="400"
-              src={getEmbedUrl(selectedVideo)}
+              src={getEmbedUrl(selectedVideo.videoUrl)}
               title="YouTube video player"
               frameBorder="0"
               allowFullScreen
             />
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'end' }}>
+              <button
+                className="btn-continue"
+                style={{ width: 'auto', background: 'var(--game-neon-blue)', color: '#000' }}
+                disabled={generatingAssessmentId === selectedVideo.id}
+                onClick={async () => {
+                  const courseId = selectedVideo.id;
+                  const courseTitle = selectedVideo.title;
+                  setGeneratingAssessmentId(courseId);
+                  try {
+                    const { generateCourseAssessment } = await import('../api/course.api');
+                    const res = await generateCourseAssessment(courseId);
+                    if (res.success) {
+                      setSelectedVideo(null);
+                      navigate('/assessment', { state: { assessment: res.assessment } });
+                    }
+                  } catch (err) {
+                    console.error("Assessment generation failed", err);
+                    alert(`Failed to spawn assessment for ${courseTitle}. Please try again later.`);
+                  } finally {
+                    setGeneratingAssessmentId(null);
+                  }
+                }}
+              >
+                {generatingAssessmentId === selectedVideo.id ?
+                  <><div className="loader-ring" style={{ width: '16px', height: '16px', margin: '0 8px 0 0', borderWidth: '2px' }} /> CONNECTING TO LLM...</>
+                  : <><FaCheckCircle /> Take Course Assessment</>
+                }
+              </button>
+            </div>
           </div>
         </div>
       )}
