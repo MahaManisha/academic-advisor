@@ -15,6 +15,7 @@ import notificationRoutes from "./modules/notification/notification.routes.js";
 
 import courseRoutes from "./modules/course/course.routes.js";
 import configRoutes from "./modules/config/config.routes.js";
+import studyRoutes from "./modules/study/study.routes.js";
 
 const router = Router();
 
@@ -29,6 +30,7 @@ import onboardingRoutes from "./modules/onboarding/onboarding.routes.js";
 router.use("/onboarding", onboardingRoutes);
 router.use("/courses", courseRoutes);
 router.use("/config", configRoutes);
+router.use("/study", studyRoutes);
 router.use("/peer", peerRoutes);
 router.use("/gamification", gamificationRoutes)
 router.use("/analytics", analyticsRoutes);

@@ -2,12 +2,16 @@ import React from 'react';
 import Confetti from 'react-confetti';
 import { useGamification } from '../../context/GamificationContext';
 import { FaCrown, FaTimes } from 'react-icons/fa';
+import GlobalFocusMonitor from './GlobalFocusMonitor';
 
 const GlobalGamification = () => {
     const { achievements, levelUpData, clearLevelUp } = useGamification();
 
     return (
         <>
+            {/* Global Focus Monitor */}
+            <GlobalFocusMonitor />
+
             {/* Achievement Popups */}
             <div className="g-achievement-container">
                 {achievements.map((ach) => (

@@ -5,20 +5,22 @@ export const XP_RULES = {
   DAILY_LOGIN: 10,
   CHAT_SESSION: 5,
   ONBOARDING_COMPLETE: 100,
-  CORRECT_ANSWER: 10 // Used in onboarding/assessment
+  CORRECT_ANSWER: 10, // Used in onboarding/assessment
+  FOCUS_SESSION: 100
 };
 
 export const calculateLevel = (xp) => {
   return Math.floor(xp / 200) + 1;
 };
 
-export const unlockBadges = (xp, streak) => {
+export const unlockBadges = (xp, streak, action) => {
   const badges = [];
 
   if (xp >= 100) badges.push("First Steps");
   if (xp >= 500) badges.push("Consistent Learner");
   if (streak >= 7) badges.push("7-Day Streak");
   if (xp >= 1000) badges.push("Academic Warrior");
+  if (action === 'FOCUS_SESSION') badges.push("Laser Focus");
 
   return badges;
 };

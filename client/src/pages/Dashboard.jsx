@@ -16,14 +16,17 @@ import {
   FaPlus,
   FaMedal
 } from 'react-icons/fa';
+import { FaVideo } from 'react-icons/fa';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { useGamification } from '../context/GamificationContext';
+import { useFocus } from '../context/FocusContext';
 import { AvatarCard } from '../components/gamification/AvatarCard';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const { badges } = useGamification();
+  const { badges, triggerAction } = useGamification();
+  const { startFocusMode } = useFocus();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -134,6 +137,16 @@ const Dashboard = () => {
       stats: 'Connect with peers',
       path: '/peer-chat',
     },
+    {
+      id: 5,
+      title: 'Focus Studio',
+      description: 'AI-monitored deep work session',
+      icon: <FaVideo />,
+      color: '#ff3366',
+      rgb: '255, 51, 102',
+      stats: 'Earn XP for focusing',
+      path: '#focus',
+    },
   ];
 
   const handleLogout = () => {
@@ -142,7 +155,11 @@ const Dashboard = () => {
   };
 
   const handleCardClick = (path) => {
-    navigate(path);
+    if (path === '#focus') {
+      startFocusMode({ id: null, title: 'Deep Work Session' });
+    } else {
+      navigate(path);
+    }
   };
 
   return (
@@ -312,6 +329,7 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
     </div>
   );
 };

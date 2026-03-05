@@ -11,13 +11,18 @@ import {
   FaCheckCircle,
   FaStar,
   FaPlay,
-  FaChartLine
+  FaChartLine,
+  FaVideo
 } from 'react-icons/fa';
+import { useGamification } from '../context/GamificationContext';
+import { useFocus } from '../context/FocusContext';
 import './Dashboard.css';
 import './Courses.css';
 
 const Courses = () => {
   const { user, logout } = useAuth();
+  const { triggerAction } = useGamification();
+  const { startFocusMode } = useFocus();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filter, setFilter] = useState('all'); // all, ongoing, completed
@@ -353,25 +358,35 @@ const Courses = () => {
                           <FaStar style={{ fontSize: '12px' }} /> Add to My Courses
                         </button>
                       ) : (
-                        <button
-                          className="btn-watch-video"
-                          onClick={() => {
-                            if (course.videoUrl) setSelectedVideo(course);
-                            else handleCourseClick(course.id);
-                          }}
-                        >
-                          {course.videoUrl ? (
-                            <>
-                              <FaPlay style={{ fontSize: '12px' }} /> Watch Video
-                            </>
-                          ) : course.status === 'completed' ? (
-                            'Review Data'
-                          ) : (
-                            <>
-                              <FaPlay style={{ fontSize: '12px' }} /> Initiate Sequence
-                            </>
-                          )}
-                        </button>
+                        <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                          <button
+                            className="btn-watch-video"
+                            onClick={() => {
+                              if (course.videoUrl) setSelectedVideo(course);
+                              else handleCourseClick(course.id);
+                            }}
+                          >
+                            {course.videoUrl ? (
+                              <>
+                                <FaPlay style={{ fontSize: '12px' }} /> Watch Video Data
+                              </>
+                            ) : course.status === 'completed' ? (
+                              'Review Data'
+                            ) : (
+                              <>
+                                <FaPlay style={{ fontSize: '12px' }} /> Initiate Sequence
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            className="btn-watch-video"
+                            style={{ background: 'transparent', borderColor: '#00ffcc', color: '#00ffcc' }}
+                            onClick={() => startFocusMode(course)}
+                          >
+                            <FaVideo style={{ fontSize: '12px' }} /> Start Focus Study Mode
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -454,6 +469,7 @@ const Courses = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

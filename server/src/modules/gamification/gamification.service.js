@@ -22,7 +22,7 @@ export const updateProgress = async (userId, action, customXP = 0) => {
   data.level = calculateLevel(data.xp);
   data.lastActive = new Date();
 
-  const newBadgesList = unlockBadges(data.xp, data.streak);
+  const newBadgesList = unlockBadges(data.xp, data.streak, action);
   const previouslyUnlocked = new Set(data.badges);
   const unlockedBadges = newBadgesList.filter(b => !previouslyUnlocked.has(b));
 
