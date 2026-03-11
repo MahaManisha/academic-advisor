@@ -38,6 +38,8 @@ const Courses = () => {
   const [generatingAI, setGeneratingAI] = useState(false);
   const [generatingAssessmentId, setGeneratingAssessmentId] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videoWatchProgress, setVideoWatchProgress] = useState(0); // 0 to 100
+  const [canTakeAssessment, setCanTakeAssessment] = useState(false);
 
   // Video utilities
   const getThumbnailUrl = (url) => {
@@ -96,6 +98,32 @@ const Courses = () => {
   useEffect(() => {
     loadCourses();
   }, []);
+
+  // Video Watch Timer Logic
+  useEffect(() => {
+    let timer;
+    if (selectedVideo) {
+      setCanTakeAssessment(false);
+      setVideoWatchProgress(0);
+
+      // We simulate "watching" by requiring 15 seconds of stay in the modal
+      // This ensures they at least initiate the learning process
+      const totalRequiredSec = 15;
+      let elapsed = 0;
+
+      timer = setInterval(() => {
+        elapsed += 1;
+        const progress = Math.min(100, Math.round((elapsed / totalRequiredSec) * 100));
+        setVideoWatchProgress(progress);
+
+        if (elapsed >= totalRequiredSec) {
+          setCanTakeAssessment(true);
+          clearInterval(timer);
+        }
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [selectedVideo]);
 
   const handleGenerateAIMissions = async () => {
     try {
@@ -436,11 +464,34 @@ const Courses = () => {
               frameBorder="0"
               allowFullScreen
             />
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'end' }}>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="watch-progress-container" style={{ flex: 1, marginRight: '20px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--game-text-muted)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Learning Progress</span>
+                  <span>{videoWatchProgress}%</span>
+                </div>
+                <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${videoWatchProgress}%`,
+                    background: videoWatchProgress === 100 ? '#00ffcc' : 'var(--game-neon-blue)',
+                    transition: 'width 1s linear',
+                    boxShadow: videoWatchProgress === 100 ? '0 0 10px #00ffcc' : 'none'
+                  }}></div>
+                </div>
+              </div>
+
               <button
-                className="btn-continue"
-                style={{ width: 'auto', background: 'var(--game-neon-blue)', color: '#000' }}
-                disabled={generatingAssessmentId === selectedVideo.id}
+                className={`btn-continue ${!canTakeAssessment ? 'disabled' : ''}`}
+                style={{
+                  width: 'auto',
+                  background: canTakeAssessment ? 'var(--game-neon-blue)' : 'rgba(255,255,255,0.05)',
+                  color: canTakeAssessment ? '#000' : 'rgba(255,255,255,0.3)',
+                  border: canTakeAssessment ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  cursor: canTakeAssessment ? 'pointer' : 'not-allowed',
+                  opacity: canTakeAssessment ? 1 : 0.7
+                }}
+                disabled={!canTakeAssessment || generatingAssessmentId === selectedVideo.id}
                 onClick={async () => {
                   const courseId = selectedVideo.id;
                   const courseTitle = selectedVideo.title;
@@ -450,7 +501,7 @@ const Courses = () => {
                     const res = await generateCourseAssessment(courseId);
                     if (res.success) {
                       setSelectedVideo(null);
-                      navigate('/assessment', { state: { assessment: res.assessment } });
+                      navigate('/assessment-test', { state: { assessment: res.assessment } });
                     }
                   } catch (err) {
                     console.error("Assessment generation failed", err);
@@ -462,7 +513,7 @@ const Courses = () => {
               >
                 {generatingAssessmentId === selectedVideo.id ?
                   <><div className="loader-ring" style={{ width: '16px', height: '16px', margin: '0 8px 0 0', borderWidth: '2px' }} /> CONNECTING TO LLM...</>
-                  : <><FaCheckCircle /> Take Course Assessment</>
+                  : canTakeAssessment ? <><FaCheckCircle /> Take Course Assessment</> : `Watch Video to Unlock (${15 - Math.round(videoWatchProgress * 0.15)}s)`
                 }
               </button>
             </div>

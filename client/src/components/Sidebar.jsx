@@ -12,7 +12,8 @@ import {
   FaGraduationCap,
   FaUserShield,
   FaClipboardList,
-  FaTachometerAlt
+  FaTachometerAlt,
+  FaCrown
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -36,6 +37,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     { path: '/advisor-chat', icon: <FaRobot />, label: 'AI Advisor' },
     { path: '/peer-chat', icon: <FaUsers />, label: 'Peer Chat' },
     { path: '/courses', icon: <FaBook />, label: 'My Courses' },
+    { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
     { path: '/profile', icon: <FaUser />, label: 'Profile' },
     { path: '/settings', icon: <FaCog />, label: 'Settings' },
   ];
@@ -43,6 +45,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
   // Admin navigation links
   const adminNavigationLinks = [
     { path: '/admin/dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
+    { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
     { path: '/admin/student-view', icon: <FaGraduationCap />, label: 'Students' },
     { path: '/admin/courses', icon: <FaBook />, label: 'Courses' },
     { path: '/admin/onboarding', icon: <FaClipboardList />, label: 'Onboarding' },

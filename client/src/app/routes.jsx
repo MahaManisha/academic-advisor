@@ -35,6 +35,7 @@ import AdminSettings from '../pages/AdminSettings';
 import AdminStudentView from '../pages/AdminStudentView';
 import AdminCourses from '../pages/AdminCourses';
 import AdminOnboarding from '../pages/AdminOnboarding';
+import Leaderboard from '../pages/Leaderboard';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -257,6 +258,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
             </ProtectedRoute>
           }
         />

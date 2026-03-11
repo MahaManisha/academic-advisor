@@ -45,3 +45,36 @@ export const getStats = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getLeaderboard = async (req, res, next) => {
+  try {
+    // Fetch top 50 users sorted by XP descending
+    const topUsers = await Gamification.find({})
+      .sort({ xp: -1 })
+      .limit(50)
+      .populate("userId", "fullName email role academicStatus bg theme archetype");
+
+    // Filter out potential null users if they were deleted and map data
+    const leaderboard = topUsers
+      .filter((entry) => entry.userId)
+      .map((entry, index) => ({
+        rank: index + 1,
+        id: entry.userId._id,
+        name: entry.userId.fullName,
+        role: entry.userId.role,
+        academicStatus: entry.userId.academicStatus,
+        archetype: entry.userId.archetype,
+        xp: entry.xp,
+        level: entry.level,
+        badges: entry.badges,
+        streak: entry.streak
+      }));
+
+    res.json({
+      success: true,
+      leaderboard
+    });
+  } catch (err) {
+    next(err);
+  }
+};
