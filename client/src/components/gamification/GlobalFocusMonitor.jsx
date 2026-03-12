@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import * as blazeface from '@tensorflow-models/blazeface';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { FaTimesCircle, FaCheckCircle, FaExclamationTriangle, FaTrophy, FaVideo, FaMinus, FaExpand, FaExternalLinkAlt } from 'react-icons/fa';
 import { startStudySession, endStudySession } from '../../api/study.api';
 import { useFocus } from '../../context/FocusContext';
@@ -14,6 +15,7 @@ const GlobalFocusMonitor = () => {
     const webcamRef = useRef(null);
     const screenRef = useRef(null);
     const [model, setModel] = useState(null);
+    const [objDetector, setObjDetector] = useState(null);
     const [cameraActive, setCameraActive] = useState(false);
     const [screenStream, setScreenStream] = useState(null);
     const [isFocused, setIsFocused] = useState(true);
@@ -85,7 +87,11 @@ const GlobalFocusMonitor = () => {
             try {
                 await tf.ready();
                 const loadedModel = await blazeface.load();
-                if (active) setModel(loadedModel);
+                const loadedObjDetector = await cocoSsd.load(); // Yono26 equivalent zero-shot object detection
+                if (active) {
+                    setModel(loadedModel);
+                    setObjDetector(loadedObjDetector);
+                }
 
                 const res = await startStudySession(focusCourse?.id);
                 if (res.success && active) {
@@ -109,6 +115,7 @@ const GlobalFocusMonitor = () => {
             setCameraActive(false);
             stopScreenCapture();
             setModel(null);
+            setObjDetector(null);
         };
     }, [isFocusModeActive, focusCourse]);
 
@@ -137,7 +144,7 @@ const GlobalFocusMonitor = () => {
     }, [isFocusModeActive]);
 
     useEffect(() => {
-        if (!model || !cameraActive || !isFocusModeActive) return;
+        if (!model || !objDetector || !cameraActive || !isFocusModeActive) return;
 
         let loopInterval;
         const LOOP_SPEED_MS = 1000;
@@ -146,11 +153,22 @@ const GlobalFocusMonitor = () => {
             if (webcamRef.current?.video?.readyState === 4) {
                 const video = webcamRef.current.video;
                 const predictions = await model.estimateFaces(video, false);
+                const objPredictions = await objDetector.detect(video); // Detect phone/person
 
                 let currentlyFocused = false;
                 let attentionLostReason = "";
 
-                if (predictions.length > 0) {
+                // Check for phone and multiple people
+                const phones = objPredictions.filter(p => p.class === 'cell phone');
+                const people = objPredictions.filter(p => p.class === 'person');
+
+                if (phones.length > 0) {
+                    currentlyFocused = false;
+                    attentionLostReason = "Using Phone";
+                } else if (people.length > 1) {
+                    currentlyFocused = false;
+                    attentionLostReason = "Talking to Someone";
+                } else if (predictions.length > 0) {
                     const face = predictions[0];
                     const landmarks = face.landmarks;
 
@@ -158,22 +176,33 @@ const GlobalFocusMonitor = () => {
                     const nose = landmarks[2];
                     const leftEye = landmarks[1];
                     const rightEye = landmarks[0];
+                    const mouth = landmarks[3];
 
-                    // Calculate head rotation (approximate)
-                    const distToLeftEye = Math.abs(nose[0] - leftEye[0]);
-                    const distToRightEye = Math.abs(nose[0] - rightEye[0]);
+                    // Drowsiness check via head-droop
+                    const eyeYAvg = (leftEye[1] + rightEye[1]) / 2;
+                    const distYEyeToNose = nose[1] - eyeYAvg;
+                    const distYNoseToMouth = mouth[1] - nose[1];
 
-                    // If ratio is too high, head is turned significantly
-                    const ratio = distToLeftEye / (distToRightEye || 0.1);
-
-                    if (ratio > 2.5) {
+                    if (distYEyeToNose < distYNoseToMouth * 0.5) { // Head tilted down significantly
                         currentlyFocused = false;
-                        attentionLostReason = "Looking Left";
-                    } else if (ratio < 0.4) {
-                        currentlyFocused = false;
-                        attentionLostReason = "Looking Right";
+                        attentionLostReason = "Drowsiness Detected";
                     } else {
-                        currentlyFocused = true;
+                        // Calculate head rotation (approximate)
+                        const distToLeftEye = Math.abs(nose[0] - leftEye[0]);
+                        const distToRightEye = Math.abs(nose[0] - rightEye[0]);
+
+                        // If ratio is too high, head is turned significantly
+                        const ratio = distToLeftEye / (distToRightEye || 0.1);
+
+                        if (ratio > 2.5) {
+                            currentlyFocused = false;
+                            attentionLostReason = "Looking Left";
+                        } else if (ratio < 0.4) {
+                            currentlyFocused = false;
+                            attentionLostReason = "Looking Right";
+                        } else {
+                            currentlyFocused = true;
+                        }
                     }
                 }
 
