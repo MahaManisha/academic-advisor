@@ -12,6 +12,7 @@ import gamificationRoutes from "./modules/gamification/gamification.routes.js";
 import peerRoutes from "./modules/peer/peerChat.routes.js";
 import nlpRoutes from "./modules/nlp/nlp.routes.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
+import guildRoutes from "./modules/guild/guild.routes.js";
 
 import courseRoutes from "./modules/course/course.routes.js";
 import configRoutes from "./modules/config/config.routes.js";
@@ -43,5 +44,6 @@ router.use("/users", userRoutes);
 router.use("/nlp", nlpRoutes);
 router.use("/profile", studentProfileRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/guilds", guildRoutes);
 
 export default router;

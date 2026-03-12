@@ -36,6 +36,7 @@ import AdminStudentView from '../pages/AdminStudentView';
 import AdminCourses from '../pages/AdminCourses';
 import AdminOnboarding from '../pages/AdminOnboarding';
 import Leaderboard from '../pages/Leaderboard';
+import Guilds from '../pages/Guilds';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -267,6 +268,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Leaderboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/guilds"
+          element={
+            <ProtectedRoute>
+              <Guilds />
             </ProtectedRoute>
           }
         />

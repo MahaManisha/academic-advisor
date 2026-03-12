@@ -13,7 +13,8 @@ import {
   FaUserShield,
   FaClipboardList,
   FaTachometerAlt,
-  FaCrown
+  FaCrown,
+  FaShieldAlt
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -36,6 +37,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     { path: '/planner', icon: <FaCalendarAlt />, label: 'Study Planner' },
     { path: '/advisor-chat', icon: <FaRobot />, label: 'AI Advisor' },
     { path: '/peer-chat', icon: <FaUsers />, label: 'Peer Chat' },
+    { path: '/guilds', icon: <FaShieldAlt />, label: 'Study Factions' },
     { path: '/courses', icon: <FaBook />, label: 'My Courses' },
     { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
     { path: '/profile', icon: <FaUser />, label: 'Profile' },
