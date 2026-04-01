@@ -22,26 +22,26 @@ export const submitOnboarding = async (data) => {
     }
 };
 
-export const getAdaptiveQuestion = async (domain, difficulty = null, previousAnalysis = null) => {
+export const getDiagnosticTest = async (domain) => {
     try {
-        const response = await axiosInstance.post('/onboarding/adaptive/question', {
-            domain, difficulty, previousAnalysis
+        const response = await axiosInstance.post('/onboarding/diagnostic/test', {
+            domain
         });
         return response.data;
     } catch (error) {
-        console.error('Failed to get adaptive question:', error);
+        console.error('Failed to get diagnostic test:', error);
         throw error;
     }
 };
 
-export const evaluateAdaptiveAnswer = async (domain, question, answer) => {
+export const evaluateDiagnosticTest = async (domain, questions, answers) => {
     try {
-        const response = await axiosInstance.post('/onboarding/adaptive/evaluate', {
-            domain, question, answer
+        const response = await axiosInstance.post('/onboarding/diagnostic/evaluate', {
+            domain, questions, answers
         });
         return response.data;
     } catch (error) {
-        console.error('Failed to evaluate adaptive answer:', error);
+        console.error('Failed to evaluate diagnostic test:', error);
         throw error;
     }
 };

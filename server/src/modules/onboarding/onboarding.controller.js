@@ -37,11 +37,9 @@ export const submitOnboarding = async (req, res) => {
     }
 };
 
-export const getAdaptiveQuestion = async (req, res) => {
+export const getDiagnosticTest = async (req, res) => {
     try {
-        const { domain, difficulty, previousAnalysis } = req.body;
-        // Default difficulty if not provided is 3
-        const level = difficulty || 3;
+        const { domain } = req.body;
 
         let accessibilityPrefs = {};
         let syllabusUrl = null;
@@ -53,22 +51,21 @@ export const getAdaptiveQuestion = async (req, res) => {
             }
         }
 
-        const question = await ragService.generateAdaptiveQuestion(domain, level, previousAnalysis, accessibilityPrefs, syllabusUrl);
+        const testResponse = await ragService.generateDiagnosticTest(domain, accessibilityPrefs, syllabusUrl);
 
         res.status(200).json({
             success: true,
-            question,
-            difficulty: level
+            questions: testResponse.questions || []
         });
     } catch (error) {
-        console.error('Adaptive Question Generation Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate question', error: error.message });
+        console.error('Diagnostic Test Generation Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to generate test', error: error.message });
     }
 };
 
-export const evaluateAdaptiveAnswer = async (req, res) => {
+export const evaluateDiagnosticTest = async (req, res) => {
     try {
-        const { domain, question, answer } = req.body;
+        const { domain, questions, answers } = req.body;
 
         let syllabusUrl = null;
         if (req.user && (req.user.id || req.user.userId)) {
@@ -76,20 +73,14 @@ export const evaluateAdaptiveAnswer = async (req, res) => {
             if (user) syllabusUrl = user.syllabusUrl || null;
         }
 
-        const evaluation = await ragService.evaluateAdaptiveAnswer(domain, question, answer, syllabusUrl);
-
-        // Dynamically adjust difficulty based on performance
-        let nextDifficulty = question.difficulty;
-        if (evaluation.score >= 0.8) nextDifficulty = Math.min(5, nextDifficulty + 1);
-        else if (evaluation.score <= 0.4) nextDifficulty = Math.max(1, nextDifficulty - 1);
+        const evaluation = await ragService.evaluateDiagnosticTest(domain, questions, answers, syllabusUrl);
 
         res.status(200).json({
             success: true,
-            evaluation,
-            nextDifficulty
+            evaluation
         });
     } catch (error) {
-        console.error('Adaptive Evaluation Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to evaluate answer', error: error.message });
+        console.error('Diagnostic Test Evaluation Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to evaluate test', error: error.message });
     }
 };

@@ -137,6 +137,32 @@ const userSchema = new mongoose.Schema(
     // Assessment Results (Simplified storage)
     assessmentResults: { type: Object },
 
+    // Marksheets / Grade Sheets
+    marksheets: [
+      {
+        semester: { type: String, required: true },       // e.g. "Semester 3"
+        year: { type: String },                            // e.g. "2024-25"
+        uploadedAt: { type: Date, default: Date.now },
+        subjects: [
+          {
+            name: { type: String, required: true },        // Subject name
+            code: { type: String },                        // Subject code
+            credits: { type: Number },                    // Total credits
+            marksObtained: { type: Number },              // Marks obtained
+            maxMarks: { type: Number },                   // Max marks
+            grade: { type: String },                      // Grade letter: A+, A, B, etc.
+            gradePoints: { type: Number },                // Grade points
+            status: { type: String, default: 'Pass' }     // Pass / Fail
+          }
+        ],
+        cgpa: { type: Number },                          // Cumulative GPA for that semester
+        sgpa: { type: Number },                          // Semester GPA
+        totalCredits: { type: Number },
+        creditsEarned: { type: Number },
+        aiAnalysis: { type: String }                    // Cached AI analysis text
+      }
+    ],
+
     // Peer Connections
     connections: [
       {

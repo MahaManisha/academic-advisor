@@ -1,6 +1,7 @@
 // server/src/socket/index.js
 import setupPeerSocket from "./peer.socket.js";
 import setupChatSocket from "../modules/peer/chat.socket.js";
+import setupArenaSocket from "../modules/arena/arena.socket.js";
 
 const setupSockets = (io) => {
   io.on("connection", (socket) => {
@@ -18,6 +19,9 @@ const setupSockets = (io) => {
 
     // Enhanced chat socket events (register_user, join_room, send_message, typing, seen)
     setupChatSocket(io, socket);
+
+    // Arena matchmaking and gameplay events
+    setupArenaSocket(io, socket);
 
     socket.on("disconnect", () => {
     });

@@ -27,6 +27,7 @@ const StudyPlanner = () => {
   const [planId, setPlanId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [isBurnoutDetected, setIsBurnoutDetected] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -49,6 +50,18 @@ const StudyPlanner = () => {
     };
     fetchTasks();
   }, []);
+
+  // Detect Burnout based on average task time
+  useEffect(() => {
+    if (tasks.length > 0) {
+      const avgTime = tasks.reduce((sum, t) => sum + (t.duration || 60), 0) / tasks.length;
+      if (avgTime < 45 || tasks.some(t => t.title.includes("Relax") || t.title.includes("Light"))) {
+        setIsBurnoutDetected(true);
+      } else {
+        setIsBurnoutDetected(false);
+      }
+    }
+  }, [tasks]);
 
   const [newTask, setNewTask] = useState({
     title: '',
@@ -161,6 +174,25 @@ const StudyPlanner = () => {
 
       <main className="dashboard-main centered-main-layout">
         <div className="centered-content-wrapper">
+          {isBurnoutDetected && (
+            <div className="burnout-warning-banner" style={{
+              background: 'rgba(255, 60, 100, 0.15)',
+              borderLeft: '4px solid #ff3c64',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <FaCheckCircle style={{ color: '#ff3c64', fontSize: '1.5rem' }} />
+              <div>
+                <h4 style={{ margin: 0, color: '#ff3c64', textTransform: 'uppercase' }}>Cognitive Fatigue Detected</h4>
+                <p style={{ margin: '0.2rem 0 0 0', color: 'var(--game-text-muted)' }}>We noticed high distraction levels in your recent Focus Sessions. Your AI Study Plan has been dynamically adjusted to reduce workload and encourage light review.</p>
+              </div>
+            </div>
+          )}
+
           {/* Stats */}
           <div className="stats-grid">
             <div className="stat-card">

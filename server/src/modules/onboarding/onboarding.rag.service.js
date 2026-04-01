@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import { getQuestionGenerationPrompt, getAnswerEvaluationPrompt } from "./onboarding.prompt.js";
+import { getDiagnosticTestPrompt, getDiagnosticEvaluationPrompt } from "./onboarding.prompt.js";
 import { scrapeSyllabus } from "../../utils/scrape.service.js";
 
 const getGroqClient = () => {
@@ -12,15 +12,15 @@ const getGroqClient = () => {
 // Fallback static context since we do not have a full Vector Database populated
 const getMockSyllabusContext = (domain) => {
     const contexts = {
-        "Computer Science": "Data Structures cover Trees, Graphs, Hash Maps, and Linked Lists. Operating Systems deal with concurrency, memory management, and process scheduling.",
-        "Mechanical": "Thermodynamics covers laws of thermal energy transfer. Fluid mechanics focuses on viscosity and flow dynamics.",
-        "Biology": "Cell biology covers the structure of eukaryotic vs prokaryotic cells, mitosis, and meiosis.",
-        "default": "Basic analytical thinking involves logically deducing facts from given premises and avoiding logical fallacies."
+        "Computer Science": "Data Structures cover Trees, Graphs, Hash Maps, and Linked Lists. Operating Systems deal with concurrency, memory management, and process scheduling. Algorithms focus on sorting, searching, and dynamic programming.",
+        "Mechanical": "Thermodynamics covers laws of thermal energy transfer. Fluid mechanics focuses on viscosity and flow dynamics. Statics deals with forces on stationary bodies.",
+        "Biology": "Cell biology covers the structure of eukaryotic vs prokaryotic cells, mitosis, and meiosis. Genetics deals with inheritance, DNA structure, and mutations.",
+        "default": "Basic analytical thinking involves logically deducing facts from given premises and avoiding logical fallacies. Problem-solving includes breaking down complex tasks."
     };
     return contexts[domain] || contexts["default"];
 };
 
-export const retrieveSyllabusChunks = async (domain, previousAnalysis, difficulty, syllabusUrl = null) => {
+export const retrieveSyllabusChunks = async (domain, syllabusUrl = null) => {
     // If we have a given syllabus, use it as context. 
     if (syllabusUrl) {
         try {
@@ -38,10 +38,10 @@ export const retrieveSyllabusChunks = async (domain, previousAnalysis, difficult
     return getMockSyllabusContext(domain);
 };
 
-export const generateAdaptiveQuestion = async (domain, difficultyLevel, previousAnalysis = null, accessibilityPrefs = {}, syllabusUrl = null) => {
+export const generateDiagnosticTest = async (domain, accessibilityPrefs = {}, syllabusUrl = null) => {
     try {
-        const retrievedChunks = await retrieveSyllabusChunks(domain, previousAnalysis, difficultyLevel, syllabusUrl);
-        const prompt = getQuestionGenerationPrompt(retrievedChunks, previousAnalysis, difficultyLevel, domain, accessibilityPrefs);
+        const retrievedChunks = await retrieveSyllabusChunks(domain, syllabusUrl);
+        const prompt = getDiagnosticTestPrompt(retrievedChunks, domain, accessibilityPrefs);
 
         const groq = getGroqClient();
         const completion = await groq.chat.completions.create({
@@ -54,15 +54,14 @@ export const generateAdaptiveQuestion = async (domain, difficultyLevel, previous
         const text = completion.choices[0]?.message?.content || "{}";
         return JSON.parse(text);
     } catch (error) {
-        console.error("Adaptive Question Generation Error:", error);
-        throw new Error("Failed to generate adaptive question.");
+        console.error("Diagnostic Test Generation Error:", error);
+        throw new Error("Failed to generate diagnostic test.");
     }
 };
 
-export const evaluateAdaptiveAnswer = async (domain, question, studentAnswer, syllabusUrl = null) => {
+export const evaluateDiagnosticTest = async (domain, questions, studentAnswers, syllabusUrl = null) => {
     try {
-        const retrievedChunks = await retrieveSyllabusChunks(domain, null, question.difficulty, syllabusUrl);
-        const prompt = getAnswerEvaluationPrompt(retrievedChunks, question, studentAnswer);
+        const prompt = getDiagnosticEvaluationPrompt(domain, questions, studentAnswers);
 
         const groq = getGroqClient();
         const completion = await groq.chat.completions.create({
@@ -75,7 +74,7 @@ export const evaluateAdaptiveAnswer = async (domain, question, studentAnswer, sy
         const text = completion.choices[0]?.message?.content || "{}";
         return JSON.parse(text);
     } catch (error) {
-        console.error("Adaptive Evaluation Error:", error);
-        throw new Error("Failed to evaluate adaptive answer.");
+        console.error("Diagnostic Evaluation Error:", error);
+        throw new Error("Failed to evaluate diagnostic test.");
     }
 };

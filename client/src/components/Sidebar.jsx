@@ -14,7 +14,9 @@ import {
   FaClipboardList,
   FaTachometerAlt,
   FaCrown,
-  FaShieldAlt
+  FaShieldAlt,
+  FaLayerGroup,
+  FaCrosshairs
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -38,7 +40,9 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     { path: '/advisor-chat', icon: <FaRobot />, label: 'AI Advisor' },
     { path: '/peer-chat', icon: <FaUsers />, label: 'Peer Chat' },
     { path: '/guilds', icon: <FaShieldAlt />, label: 'Study Factions' },
+    { path: '/arena', icon: <FaCrosshairs />, label: 'PvP Arena' },
     { path: '/courses', icon: <FaBook />, label: 'My Courses' },
+    { path: '/flashcards', icon: <FaLayerGroup />, label: 'Flashcards' },
     { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
     { path: '/profile', icon: <FaUser />, label: 'Profile' },
     { path: '/settings', icon: <FaCog />, label: 'Settings' },

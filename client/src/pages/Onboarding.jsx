@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGamification } from '../context/GamificationContext';
 import { getOnboardingQuestions, submitOnboarding } from '../api/onboarding.api';
+import { getDiagnosticTest, evaluateDiagnosticTest } from '../api/onboarding.api';
 import {
   FaArrowRight,
   FaArrowLeft,
@@ -10,7 +11,8 @@ import {
   FaRocket,
   FaBrain,
   FaLightbulb,
-  FaBriefcase
+  FaBriefcase,
+  FaMagic
 } from 'react-icons/fa';
 import './Onboarding.css';
 
@@ -24,33 +26,29 @@ const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState(null);
 
-  // Adaptive Question State
-  const [onboardingDomain, setOnboardingDomain] = useState("Computer Science");
-  const [adaptiveSession, setAdaptiveSession] = useState({
+  // Diagnostic Test State
+  const [onboardingDomain, setOnboardingDomain] = useState("Technology");
+  const [diagnosticSession, setDiagnosticSession] = useState({
     active: false,
-    questionsCompleted: 0,
-    currentQuestion: null,
-    currentDifficulty: 3,
-    evaluations: [],
+    questions: [],
+    completed: false,
     finalScore: 0
   });
-  const [studentAnswer, setStudentAnswer] = useState("");
+  
+  // Maps question id to user's selected answer
+  const [studentAnswers, setStudentAnswers] = useState({});
   const [questionLoading, setQuestionLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [aiSuggestionsReady, setAiSuggestionsReady] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
     interests: [],
     careerGoal: '',
     learningStyle: '',
-    selfAssessment: {
-      coding: 3,
-      problemSolving: 3,
-      math: 3
-    }
+    selfAssessment: { coding: 3, problemSolving: 3, math: 3 }
   });
 
-  // Fetch Onboarding Config on Mount
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -66,42 +64,26 @@ const Onboarding = () => {
         setLoading(false);
       }
     };
-
     fetchConfig();
   }, []);
 
-  const handleNext = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
+  const handleNext = () => { if (currentStep < 4) setCurrentStep(currentStep + 1); };
+  const handleBack = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
 
   const toggleInterest = (interest) => {
     setFormData(prev => {
       const exists = prev.interests.includes(interest);
-      if (exists) {
-        return { ...prev, interests: prev.interests.filter(i => i !== interest) };
-      } else {
-        return { ...prev, interests: [...prev.interests, interest] };
-      }
+      if (exists) return { ...prev, interests: prev.interests.filter(i => i !== interest) };
+      return { ...prev, interests: [...prev.interests, interest] };
     });
   };
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const payload = {
-        ...formData,
-      };
-
-      const result = await submitOnboarding(payload);
-
+      const result = await submitOnboarding(formData);
       if (result.success) {
-        if (user) {
-          updateProfile({ ...user, onboardingCompleted: true, profileCompleted: true });
-        }
+        if (user) updateProfile({ ...user, onboardingCompleted: true, profileCompleted: true });
         await triggerAction('ONBOARDING_COMPLETE');
         navigate('/dashboard');
       }
@@ -112,215 +94,195 @@ const Onboarding = () => {
     }
   };
 
-  // Adaptive Logic Fetcher
-  const startAdaptiveTest = async () => {
+  const startDiagnosticTest = async () => {
     try {
       setQuestionLoading(true);
-      const { getAdaptiveQuestion } = await import('../api/onboarding.api');
-
-      // Infer domain from chosen career or default
       const domain = user?.domain || user?.department || user?.qualification || "Technology";
       setOnboardingDomain(domain);
-
-      const res = await getAdaptiveQuestion(domain, 3, null); // Start at diff 3
-      setAdaptiveSession({
+      const res = await getDiagnosticTest(domain);
+      
+      setDiagnosticSession({
         active: true,
-        questionsCompleted: 0,
-        currentQuestion: res.question,
-        currentDifficulty: 3,
-        evaluations: [],
+        questions: res.questions || [],
+        completed: false,
         finalScore: 0
       });
     } catch (err) {
       console.error(err);
-      setError("Failed to generate adaptive test.");
+      setError("Failed to generate diagnostic test.");
     } finally {
       setQuestionLoading(false);
     }
   };
 
-  const handleAdaptiveSubmit = async () => {
-    if (!studentAnswer.trim()) return;
+  const handleDiagnosticSubmit = async () => {
+    // Ensure all questions are answered
+    if (Object.keys(studentAnswers).length < diagnosticSession.questions.length && diagnosticSession.questions.length > 0) {
+       alert("Please answer all questions before submitting.");
+       return;
+    }
 
     try {
       setQuestionLoading(true);
-      const { evaluateAdaptiveAnswer, getAdaptiveQuestion } = await import('../api/onboarding.api');
-
-      // Evaluate Answer
-      const evalRes = await evaluateAdaptiveAnswer(
+      const evalRes = await evaluateDiagnosticTest(
         onboardingDomain,
-        adaptiveSession.currentQuestion,
-        studentAnswer
+        diagnosticSession.questions,
+        studentAnswers
       );
-
-      const newEvaluations = [...adaptiveSession.evaluations, evalRes.evaluation];
-      const newCompleted = adaptiveSession.questionsCompleted + 1;
-
+      
+      const { score, conceptStrength, weaknesses, suggestedInterests, suggestedCareerGoals, suggestedLearningStyle } = evalRes.evaluation;
+      
       setFeedback(evalRes.evaluation);
+      
+      let xpGained = Math.ceil(score * 100);
+      if (score >= 0.6) triggerAction('CORRECT_ANSWER', xpGained);
 
-      let xpGained = 0;
-      if (evalRes.evaluation.score >= 0.6) {
-        xpGained = Math.ceil(evalRes.nextDifficulty * 10);
-        triggerAction('CORRECT_ANSWER', xpGained);
-      }
-      setFeedback({ ...evalRes.evaluation, xpGained });
+      const skillLvl = score >= 0.8 ? 5 : (score >= 0.5 ? 3 : 1);
+      
+      // Auto-fill Step 2 & 3 based on AI suggestions!
+      setFormData(prev => ({
+        ...prev,
+        interests: suggestedInterests || [],
+        careerGoal: suggestedCareerGoals?.[0] || prev.careerGoal,
+        learningStyle: suggestedLearningStyle || prev.learningStyle,
+        selfAssessment: { coding: skillLvl, problemSolving: skillLvl, math: 3 }
+      }));
 
-      // Calculate Next Step
-      if (newCompleted >= 5) {
-        // Done with 5 questions
-        const avgScore = newEvaluations.reduce((acc, curr) => acc + curr.score, 0) / 5;
-
-        // Map the final score back to our generic selfAssessment form format
-        setFormData(prev => ({
-          ...prev,
-          selfAssessment: { coding: Math.ceil(evalRes.nextDifficulty), problemSolving: Math.ceil(evalRes.nextDifficulty), math: 3 }
-        }));
-
-        setTimeout(() => {
-          setAdaptiveSession(prev => ({ ...prev, active: false, questionsCompleted: 5, finalScore: avgScore }));
-          setFeedback(null);
-          setQuestionLoading(false);
-        }, 3000);
-        return;
-      }
-
-      setTimeout(async () => {
-        // Fetch Next Question
-        const previousAnalysis = {
-          score: evalRes.evaluation.score,
-          weaknesses: evalRes.evaluation.weaknesses,
-        };
-
-        const qRes = await getAdaptiveQuestion(onboardingDomain, evalRes.nextDifficulty, previousAnalysis);
-
-        setAdaptiveSession(prev => ({
-          ...prev,
-          currentQuestion: qRes.question,
-          currentDifficulty: evalRes.nextDifficulty,
-          questionsCompleted: newCompleted,
-          evaluations: newEvaluations
-        }));
-
-        setFeedback(null);
-        setStudentAnswer("");
-        setQuestionLoading(false);
-      }, 3000); // Wait 3 seconds to let them read feedback
-
+      setDiagnosticSession(prev => ({ ...prev, active: false, completed: true, finalScore: score }));
+      setAiSuggestionsReady(true);
+      
     } catch (err) {
       console.error(err);
-      setError("Error checking answer");
+      setError("Error evaluating diagnostic test.");
+    } finally {
       setQuestionLoading(false);
     }
   };
 
   // --- RENDERERS ---
 
-  // Step 1: Adaptive Knowledge Test
   const renderStep1 = () => {
-    if (questionLoading && !feedback) return <div className="loading-spinner">Analyzing Domain & Generating...</div>;
+    if (questionLoading && !diagnosticSession.active && !diagnosticSession.completed) {
+       return <div className="loading-spinner">Generating 15 Mixed Difficulty Questions...</div>;
+    }
 
-    if (!adaptiveSession.active && adaptiveSession.questionsCompleted === 0) {
+    if (!diagnosticSession.active && !diagnosticSession.completed) {
       const uDomain = user?.domain || user?.department || user?.qualification || "Technology";
       return (
         <div className="onboarding-step fade-in text-center">
           <div className="step-header">
             <span className="step-badge">Step 1 of 4</span>
           </div>
-          <h2>Adaptive Diagnostic Test</h2>
-          <p>We're going to ask you up to 5 quick questions based on your academic path ({uDomain}) to test your conceptual depth.</p>
-          {user?.syllabusUrl && (
-            <p style={{ color: '#4ade80', marginTop: '10px' }}>
-              <FaCheckCircle style={{ display: 'inline', marginRight: '5px' }} />
-              We found your college syllabus! The test will be aligned with your curriculum.
-            </p>
-          )}
-          <p style={{ marginTop: '15px' }}>The difficulty will scale dynamically based on your answers!</p>
-          <button className="btn-primary-large mt-4" onClick={startAdaptiveTest}>
+          <h2>Diagnostic Test</h2>
+          <p>We're going to generate a diagnostic test of mixed difficulty (Easy, Medium, Hard) to assess your conceptual depth in <strong>{uDomain}</strong>.</p>
+          <p style={{ marginTop: '15px' }}>Let AI analyze your skills and automatically suggest your career goals and interests!</p>
+          <button className="btn-primary-large mt-4" onClick={startDiagnosticTest}>
             Start Diagnostic <FaBrain />
           </button>
         </div>
       );
     }
 
-    if (!adaptiveSession.active && adaptiveSession.questionsCompleted >= 5) {
+    if (diagnosticSession.completed && feedback) {
       return (
         <div className="onboarding-step fade-in text-center">
           <h2>Diagnostic Complete!</h2>
-          <p style={{ fontSize: '24px', margin: '20px 0' }}>Your average score: <strong>{Math.round(adaptiveSession.finalScore * 100)}%</strong></p>
-          <p>We've successfully calibrated your academic baseline profile.</p>
-          <p style={{ color: '#a78bfa', marginTop: '10px' }}>Click Next to continue with your preferences.</p>
+          <div className="feedback-card positive" style={{ margin: '20px auto', maxWidth: '600px' }}>
+             <h4>Score: {Math.round(diagnosticSession.finalScore * 100)}%</h4>
+             <p>{feedback.conceptStrength}</p>
+             {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}
+          </div>
+          <p style={{ color: '#4ade80', fontSize: '18px', marginTop: '10px' }}>
+            <FaMagic style={{ display: 'inline', marginRight: '5px' }} />
+            AI has generated personalized suggestions for your interests and career path!
+          </p>
+          <button className="btn-primary-large mt-4" onClick={handleNext}>
+            Review AI Suggestions <FaArrowRight />
+          </button>
         </div>
       )
     }
 
+    if (questionLoading) {
+        return <div className="loading-spinner">Evaluating your answers and generating AI suggestions...</div>;
+    }
+
     return (
       <div className="onboarding-step fade-in">
-        <div className="diagnostic-question-container">
-          <div className="diagnostic-question-header">
-            <span className="step-badge">Question {adaptiveSession.questionsCompleted + 1} of 5</span>
-            <span className="difficulty-badge">Level {Math.round(adaptiveSession.currentDifficulty)}</span>
-          </div>
-          <div className="diagnostic-question-content">
-            <p>{adaptiveSession.currentQuestion?.question}</p>
-          </div>
+        <div className="step-header">
+           <span className="step-badge">Full Diagnostic</span>
+           <h2>Answer the Questions</h2>
+           <p>Complete this comprehensive test so our AI can fully calibrate your profile.</p>
         </div>
-
-        {feedback && (
-          <div className={`feedback-card ${feedback.score > 0.6 ? 'positive' : 'negative'}`} style={{ position: 'relative' }}>
-            {feedback.xpGained > 0 && <div className="g-floating-xp" style={{ top: -20, right: 20 }}>+{feedback.xpGained} XP</div>}
-            <h4>Score: {Math.round(feedback.score * 100)}%</h4>
-            <p>{feedback.conceptStrength}</p>
-            {feedback.weaknesses?.length > 0 && <p><strong>Areas to review:</strong> {feedback.weaknesses.join(", ")}</p>}
-            <p><em>{adaptiveSession.questionsCompleted >= 4 ? 'Evaluating final results...' : 'Generating next question...'}</em></p>
-          </div>
-        )}
-
-        {!feedback && adaptiveSession.currentQuestion?.options && adaptiveSession.currentQuestion.options.length > 0 ? (
-          <div className="options-grid">
-            {adaptiveSession.currentQuestion.options.map(opt => (
-              <div key={opt} className={`option-row ${studentAnswer === opt ? 'selected' : ''}`} onClick={() => setStudentAnswer(opt)}>
-                <div className="radio-circle">
-                  {studentAnswer === opt && <div className="inner-circle" />}
-                </div>
-                <span>{opt}</span>
-              </div>
-            ))}
-            <button className="btn-primary mt-4" disabled={!studentAnswer} onClick={handleAdaptiveSubmit}>Submit Answer</button>
-          </div>
-        ) : !feedback && (
-          <div className="diagnostic-textarea-wrapper">
-            <p style={{ color: "var(--game-text-muted)", fontSize: "14px", fontStyle: "italic", marginBottom: "8px", marginLeft: "4px" }}>
-              Take your time and explain your answer clearly to bypass the security wall...
-            </p>
-            <textarea
-              className="diagnostic-textarea"
-              rows="5"
-              placeholder="Type your analytical response here..."
-              value={studentAnswer}
-              onChange={(e) => setStudentAnswer(e.target.value)}
-            ></textarea>
-            <div className="diagnostic-submit-wrapper">
-              <button className="btn-primary diagnostic-submit-btn" disabled={!studentAnswer.trim()} onClick={handleAdaptiveSubmit}>
-                SUBMIT PROTOCOL <FaRocket />
-              </button>
-            </div>
-          </div>
-        )}
+        
+        <div className="scrollable-test-container" style={{ maxHeight: '55vh', overflowY: 'auto', paddingRight: '15px', marginTop: '20px' }}>
+           {diagnosticSession.questions.map((q, index) => (
+             <div key={q.id || index} className="diagnostic-question-container" style={{ marginBottom: '25px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+               <div className="diagnostic-question-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                 <span className="step-badge" style={{ padding: '4px 8px', fontSize: '12px' }}>Q{index + 1}</span>
+                 <span className={`difficulty-badge diff-${q.difficulty?.toLowerCase()}`} style={{ fontWeight: 600, color: q.difficulty === 'Easy' ? '#4ade80' : q.difficulty === 'Medium' ? '#facc15' : '#f87171' }}>{q.difficulty}</span>
+               </div>
+               <div className="diagnostic-question-content" style={{ fontSize: '16px', marginBottom: '15px' }}>
+                 <p>{q.question}</p>
+               </div>
+               {q.options && q.options.length > 0 ? (
+                 <div className="options-grid" style={{ gridTemplateColumns: '1fr', gap: '8px' }}>
+                   {q.options.map(opt => (
+                     <div 
+                       key={opt} 
+                       className={`option-row ${studentAnswers[q.id || index] === opt ? 'selected' : ''}`} 
+                       onClick={() => setStudentAnswers(prev => ({ ...prev, [q.id || index]: opt }))}
+                       style={{ padding: '12px', cursor: 'pointer', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: studentAnswers[q.id || index] === opt ? 'rgba(167, 139, 250, 0.2)' : 'transparent', display: 'flex', alignItems: 'center' }}
+                     >
+                       <div className="radio-circle" style={{ marginRight: '10px', width: '20px', height: '20px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                         {studentAnswers[q.id || index] === opt && <div className="inner-circle" style={{ width: '10px', height: '10px', backgroundColor: '#a78bfa', borderRadius: '50%' }} />}
+                       </div>
+                       <span>{opt}</span>
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <textarea
+                   className="diagnostic-textarea"
+                   rows="3"
+                   placeholder="Your answer..."
+                   value={studentAnswers[q.id || index] || ""}
+                   onChange={(e) => setStudentAnswers(prev => ({ ...prev, [q.id || index]: e.target.value }))}
+                   style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+                 ></textarea>
+               )}
+             </div>
+           ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '25px' }}>
+           <button 
+             className="btn-primary-large" 
+             onClick={handleDiagnosticSubmit}
+           >
+             Submit Diagnostic <FaRocket />
+           </button>
+        </div>
       </div>
-    )
+    );
   };
 
-  // Step 2: Interests
   const renderStep2 = () => (
     <div className="onboarding-step fade-in">
       <div className="step-header">
         <span className="step-badge">Step 2 of 4</span>
         <h2>Your Interests</h2>
-        <p>Select the topics that excite you the most.</p>
+        {aiSuggestionsReady && (
+          <div style={{ backgroundColor: 'rgba(167, 139, 250, 0.1)', padding: '12px', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(167, 139, 250, 0.3)', textAlign: 'left' }}>
+             <p style={{ color: '#d8b4fe', margin: 0, fontSize: '15px' }}>
+               <FaMagic style={{ display: 'inline', marginRight: '8px' }} />
+               <strong>AI Pre-selected:</strong> Based on your diagnostic test performance. Feel free to tweak them!
+             </p>
+          </div>
+        )}
       </div>
 
       <div className="interests-grid">
-        {config?.interests?.map((interest) => (
+        {(config?.interests || []).concat(formData.interests.filter(i => !config?.interests?.includes(i))).map((interest) => (
           <div
             key={interest}
             className={`interest-chip ${formData.interests.includes(interest) ? 'active' : ''}`}
@@ -334,20 +296,26 @@ const Onboarding = () => {
     </div>
   );
 
-  // Step 3: Career & Learning Style
   const renderStep3 = () => (
     <div className="onboarding-step fade-in">
       <div className="step-header">
         <span className="step-badge">Step 3 of 4</span>
         <h2>Future & Style</h2>
-        <p>Tell us about your goals and how you learn best.</p>
+        {aiSuggestionsReady && (
+          <div style={{ backgroundColor: 'rgba(167, 139, 250, 0.1)', padding: '12px', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(167, 139, 250, 0.3)', textAlign: 'left' }}>
+             <p style={{ color: '#d8b4fe', margin: 0, fontSize: '15px' }}>
+               <FaMagic style={{ display: 'inline', marginRight: '8px' }} />
+               <strong>AI Suggested Path:</strong> Tailored specifically to your strengths and weaknesses.
+             </p>
+          </div>
+        )}
       </div>
 
       <div className="split-layout">
         <div className="form-group">
           <label><FaBriefcase /> Career Goal</label>
           <div className="option-list scrollable-list">
-            {config?.careerGoals?.map(goal => (
+            {(config?.careerGoals || []).concat(formData.careerGoal && !config?.careerGoals?.includes(formData.careerGoal) ? [formData.careerGoal] : []).map(goal => (
               <div
                 key={goal}
                 className={`option-row ${formData.careerGoal === goal ? 'selected' : ''}`}
@@ -365,14 +333,14 @@ const Onboarding = () => {
         <div className="form-group">
           <label><FaLightbulb /> Learning Style</label>
           <div className="option-list">
-            {config?.learningStyles?.map(style => (
+            {(config?.learningStyles || []).concat(formData.learningStyle && !config?.learningStyles?.find(s => s.id === formData.learningStyle || s.label === formData.learningStyle) ? [{id: formData.learningStyle, label: formData.learningStyle}] : []).map(style => (
               <div
                 key={style.id}
-                className={`option-row ${formData.learningStyle === style.id ? 'selected' : ''}`}
-                onClick={() => setFormData({ ...formData, learningStyle: style.id })}
+                className={`option-row ${formData.learningStyle === style.id || formData.learningStyle === style.label ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, learningStyle: style.label })}
               >
                 <div className="radio-circle">
-                  {formData.learningStyle === style.id && <div className="inner-circle" />}
+                  {(formData.learningStyle === style.id || formData.learningStyle === style.label) && <div className="inner-circle" />}
                 </div>
                 <span>{style.label}</span>
               </div>
@@ -383,7 +351,6 @@ const Onboarding = () => {
     </div>
   );
 
-  // Step 4: Final Submission
   const renderStep4 = () => (
     <div className="onboarding-step fade-in text-center">
       <h2>Great Job!</h2>
@@ -396,14 +363,8 @@ const Onboarding = () => {
     </div>
   );
 
-  if (loading && !config) {
-    return (
-      <div className="onboarding-wrapper">
-        <div className="loading-spinner">Loading...</div>
-      </div>
-    );
-  }
-
+  if (loading && !config) return <div className="onboarding-wrapper"><div className="loading-spinner">Loading...</div></div>;
+  
   if (error) {
     return (
       <div className="onboarding-wrapper">
@@ -430,7 +391,7 @@ const Onboarding = () => {
           <button
             className="btn-text"
             onClick={handleBack}
-            disabled={currentStep === 1 || (currentStep === 1 && adaptiveSession.active)}
+            disabled={currentStep === 1 || (currentStep === 1 && diagnosticSession.active)}
             style={{ visibility: currentStep === 1 ? 'hidden' : 'visible' }}
           >
             <FaArrowLeft /> Back
@@ -447,8 +408,7 @@ const Onboarding = () => {
               className="btn-primary"
               onClick={handleNext}
               disabled={
-                (currentStep === 1 && (!adaptiveSession.active && adaptiveSession.questionsCompleted < 5)) ||
-                (currentStep === 1 && adaptiveSession.active) ||
+                (currentStep === 1 && !diagnosticSession.completed) ||
                 (currentStep === 2 && formData.interests.length === 0) ||
                 (currentStep === 3 && (!formData.careerGoal || !formData.learningStyle))
               }
@@ -456,7 +416,7 @@ const Onboarding = () => {
               Next <FaArrowRight />
             </button>
           ) : (
-            <div style={{ width: '80px' }}></div> // Spacer
+            <div style={{ width: '80px' }}></div>
           )}
         </div>
       </div>

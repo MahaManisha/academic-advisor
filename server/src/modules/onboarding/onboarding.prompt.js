@@ -1,23 +1,18 @@
 // server/src/modules/onboarding/onboarding.prompt.js
-export const SYSTEM_PROMPT = `You are an academic diagnostic AI. Your goal is to identify the student's conceptual depth in the selected domain. Use the retrieved syllabus context to generate domain-specific questions.`;
+export const SYSTEM_PROMPT = `You are an academic diagnostic AI. Your goal is to construct a comprehensive diagnostic test that identifies a student's conceptual depth in the selected domain, and then evaluate their performance to suggest their personalized learning path.`;
 
-export const getQuestionGenerationPrompt = (retrievedChunks, previousAnalysis, difficultyLevel, domain, accessibilityPrefs = {}) => {
+export const getDiagnosticTestPrompt = (retrievedChunks, domain, accessibilityPrefs = {}) => {
   let accessibilityInstructions = [];
 
   if (accessibilityPrefs.cognitiveMode === 'lowCognitiveLoad') {
-    accessibilityInstructions.push("- Questions must be shorter");
-    accessibilityInstructions.push("- No complex sentences");
-    accessibilityInstructions.push("- Use simple words");
+    accessibilityInstructions.push("- Questions must be short and use simple words.");
+    accessibilityInstructions.push("- No complex sentences.");
   }
-
   if (accessibilityPrefs.screenReaderOptimized === true) {
-    accessibilityInstructions.push("- Avoid emojis");
-    accessibilityInstructions.push("- Avoid decorative symbols");
-    accessibilityInstructions.push("- Use structured formatting");
+    accessibilityInstructions.push("- Avoid decorative symbols and structured formatting.");
   }
-
   if (accessibilityPrefs.audioSupport === true) {
-    accessibilityInstructions.push("- Include short summary version");
+    accessibilityInstructions.push("- Include a short summary version for audio.");
   }
 
   const actOnAccessibility = accessibilityInstructions.length > 0
@@ -30,48 +25,51 @@ ${SYSTEM_PROMPT}
 CONTEXT:
 ${retrievedChunks}
 
-PREVIOUS ANSWER ANALYSIS (If any):
-${previousAnalysis ? JSON.stringify(previousAnalysis) : "None. This is the first question."}
-
 DOMAIN: ${domain}
-TARGET DIFFICULTY: ${difficultyLevel} (Scale 1-5)
 ${actOnAccessibility}
 INSTRUCTIONS:
-1. Generate ONE multiple-choice or short-answer question strictly based on the Context provided.
-2. The question must match the TARGET DIFFICULTY.
-3. If previous answers show weakness, focus the question on foundational concepts.
-4. Keep the question concept-focused and analytical, avoiding mere definitions.
-5. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
+1. Generate an array of exactly 15 multiple-choice questions based strictly on the Context and Domain.
+2. The questions must adhere to this Structure of Mixed Difficulty:
+   - 5 "Easy" questions testing basic concepts.
+   - 5 "Medium" questions testing application.
+   - 5 "Hard" questions testing problem-solving.
+3. Keep the questions focused and analytical.
+4. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
 {
-  "question": "The actual question text",
-  "options": ["A", "B", "C", "D"], // Include only if MCQ, otherwise null
-  "expectedConcept": "What conceptual understanding this question tests",
-  "difficulty": ${difficultyLevel}${accessibilityPrefs.audioSupport ? ',\n  "summary": "Short summary version of the question"' : ''}
+  "questions": [
+    {
+      "id": 1,
+      "question": "The actual question text",
+      "options": ["A", "B", "C", "D"],
+      "difficulty": "Easy", // or Medium, Hard
+      "expectedConcept": "What conceptual understanding this question tests"${accessibilityPrefs.audioSupport ? ',\n      "summary": "Short summary text"' : ''}
+    }
+  ]
 }
 `;
 };
 
-export const getAnswerEvaluationPrompt = (retrievedChunks, question, studentAnswer) => `
-You are an AI Grader evaluating a student's answer based on the provided context.
+export const getDiagnosticEvaluationPrompt = (domain, questions, studentAnswers) => `
+You are an AI Grader evaluating a student's completed diagnostic test.
 
-CONTEXT:
-${retrievedChunks}
+DOMAIN: ${domain}
 
-QUESTION ASKED:
-${JSON.stringify(question)}
-
-STUDENT'S ANSWER:
-${studentAnswer}
+QUESTIONS AND THE STUDENT'S ANSWERS:
+${JSON.stringify({ questions, studentAnswers }, null, 2)}
 
 INSTRUCTIONS:
-1. Compare the student_answer with the context and the required expectedConcept.
-2. Give a conceptual accuracy score between 0.0 and 1.0 (where 1.0 is perfectly correct).
-3. Identify weak concepts if the score is low.
-4. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
+1. Compare the student's answers with the expected conceptual truths in the domain.
+2. Give a conceptual accuracy score between 0.0 and 1.0.
+3. Identify their strong areas and weak areas.
+4. Crucially, based on their performance, suggest exactly 3 Career Goals, exactly 1 Learning Style out of ["Visual", "Auditory", "Reading/Writing", "Kinesthetic"], and exactly 5 academic Interests they should focus on.
+5. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
 {
-  "score": 0.8,
-  "conceptStrength": "Explains what the student understands well",
-  "weaknesses": ["list", "of", "weak", "topics"],
-  "suggestedDifficultyAdjustment": 1 // +1 to increase difficulty, -1 to decrease, 0 to keep same
+  "score": 0.85,
+  "conceptStrength": "Brief summary of what they excel at",
+  "weaknesses": ["Topic 1", "Topic 2"],
+  "suggestedInterests": ["Interest 1", "Interest 2", "Interest 3", "Interest 4", "Interest 5"],
+  "suggestedCareerGoals": ["Goal 1", "Goal 2", "Goal 3"],
+  "suggestedLearningStyle": "Visual" // must be one of the specified styles
 }
 `;
+

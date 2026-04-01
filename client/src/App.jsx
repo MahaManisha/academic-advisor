@@ -6,6 +6,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { FocusProvider } from './context/FocusContext';
 import GlobalGamification from './components/gamification/GlobalGamification';
 import AppRoutes from './app/routes';
+import ScreenReader from './components/ScreenReader';
 import './components/gamification/GamificationUI.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <FocusProvider>
             <SocketProvider>
               <NotificationProvider>
+                <ScreenReader />
                 <GlobalGamification />
                 <AppRoutes />
               </NotificationProvider>

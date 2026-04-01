@@ -37,6 +37,8 @@ import AdminCourses from '../pages/AdminCourses';
 import AdminOnboarding from '../pages/AdminOnboarding';
 import Leaderboard from '../pages/Leaderboard';
 import Guilds from '../pages/Guilds';
+import Flashcards from '../pages/Flashcards';
+import Arena from '../pages/Arena';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -277,6 +279,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Guilds />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/flashcards"
+          element={
+            <ProtectedRoute>
+              <Flashcards />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/arena"
+          element={
+            <ProtectedRoute>
+              <Arena />
             </ProtectedRoute>
           }
         />

@@ -142,12 +142,17 @@ export const completeRegistration = async (data) => {
 };
 
 export const resendOtp = async (email) => {
+  // Check if there's a registration in progress
+  const otpRecord = await Otp.findOne({ email });
   const user = await User.findOne({ email });
-  if (!user) {
+
+  // If neither exists, then we really don't know this email
+  if (!otpRecord && !user) {
     throw { status: 404, message: "User not found" };
   }
 
-  if (user.emailVerified) {
+  // If user exists and is already verified
+  if (user && user.emailVerified) {
     throw { status: 400, message: "Email already verified. Please login." };
   }
 
@@ -158,7 +163,15 @@ export const resendOtp = async (email) => {
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
 
-  await Otp.create({ email, otpHash });
+  // Preserve the fullName if we have it
+  const fullName = otpRecord ? otpRecord.fullName : (user ? user.fullName : "");
+
+  await Otp.create({ 
+    email, 
+    otpHash,
+    fullName
+  });
+  
   await sendOtpEmail(email, otp);
 
   return true;
