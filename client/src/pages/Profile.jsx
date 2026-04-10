@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,8 @@ import {
   deleteMarksheet,
   analyzeMarksheet,
   analyzeSubject,
+  extractMarksheetFromImage,
+  extractMarksheetFromText
 } from '../api/marksheet.api';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -38,6 +40,8 @@ import {
   FaChevronUp,
   FaStar,
   FaGraduationCap,
+  FaCamera,
+  FaImage
 } from 'react-icons/fa';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import './Profile.css';
@@ -62,9 +66,11 @@ const emptySubject = () => ({
 
 // ─── Marksheet Add Form ───────────────────────────────────────────────────────
 const MarksheetForm = ({ onSave, onCancel }) => {
-  const [meta, setMeta] = useState({ semester: '', year: '', sgpa: '', cgpa: '', totalCredits: '', creditsEarned: '' });
+  const fileInputRef = useRef(null);
+  const [meta, setMeta] = useState({ semester: '', year: '', gpa: '', cgpa: '', totalCredits: '', creditsEarned: '' });
   const [subjects, setSubjects] = useState([emptySubject()]);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [err, setErr] = useState('');
 
   const setSubjectField = (idx, field, value) => {
@@ -88,6 +94,111 @@ const MarksheetForm = ({ onSave, onCancel }) => {
     }
   };
 
+  const compressImage = (base64Str) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+    });
+  };
+
+  const parsePdfLocally = async (arrayBuffer) => {
+    try {
+      if (!window.pdfjsLib) {
+        throw new Error("PDF parser library is still loading. Please try again in a few seconds.");
+      }
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      return fullText;
+    } catch (err) {
+      console.error("Local PDF Parse Error:", err);
+      throw new Error("Failed to read PDF content locally.");
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const isPdf = file.type === 'application/pdf';
+    setExtracting(true);
+    setErr('');
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      let base64Data = reader.result;
+      try {
+        let response;
+        if (isPdf) {
+          const arrayBuffer = await file.arrayBuffer();
+          const text = await parsePdfLocally(arrayBuffer);
+          if (!text || text.trim().length < 10) {
+            throw new Error("Could not extract text from this PDF. It might be a scanned image. Please try uploading it as an image instead.");
+          }
+          response = await extractMarksheetFromText(text);
+        } else {
+          // Compress image before sending to AI
+          const compressed = await compressImage(base64Data);
+          response = await extractMarksheetFromImage(compressed);
+        }
+
+        if (response.success && response.data) {
+          const d = response.data;
+          setMeta({
+            semester: d.semester || meta.semester,
+            year: d.year || meta.year,
+            gpa: d.sgpa || d.gpa || meta.gpa,
+            cgpa: d.cgpa || meta.cgpa,
+            totalCredits: d.totalCredits || meta.totalCredits,
+            creditsEarned: d.creditsEarned || meta.creditsEarned
+          });
+          if (d.subjects && d.subjects.length > 0) {
+            const mappedSubs = d.subjects.map(s => ({
+              ...emptySubject(),
+              ...s,
+            }));
+            setSubjects(mappedSubs);
+          }
+        }
+      } catch (err) {
+         setErr(err.message || err.error || `Failed to extract data from ${isPdf ? 'PDF' : 'image'}. Ensure the file is clear and readable.`);
+      } finally {
+        setExtracting(false);
+        e.target.value = null; // reset input
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="ms-form-overlay">
       <motion.div
@@ -99,7 +210,13 @@ const MarksheetForm = ({ onSave, onCancel }) => {
       >
         <div className="ms-form-header">
           <span className="ms-form-title"><FaGraduationCap /> Add Marksheet</span>
-          <button onClick={onCancel} className="ms-form-close"><FaTimes /></button>
+          <div className="ms-form-header-actions" style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+             <input type="file" accept="image/*,application/pdf" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
+             <button className={`ms-btn-scan ${extracting ? 'extracting' : ''}`} onClick={() => fileInputRef.current?.click()} disabled={extracting || saving} style={{background: 'var(--game-neon-blue)', padding: '6px 12px', borderRadius: '4px', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'}}>
+               {extracting ? <FaSpinner className="spin" /> : <FaImage />} {extracting ? 'Extracting Data...' : 'Upload Image / PDF'}
+             </button>
+             <button onClick={onCancel} className="ms-form-close"><FaTimes /></button>
+          </div>
         </div>
 
         {/* Meta Row */}
@@ -113,8 +230,8 @@ const MarksheetForm = ({ onSave, onCancel }) => {
             <input placeholder="e.g. 2024-25" value={meta.year} onChange={e => setMeta({ ...meta, year: e.target.value })} />
           </div>
           <div className="ms-meta-field">
-            <label>SGPA</label>
-            <input type="number" step="0.01" placeholder="8.5" value={meta.sgpa} onChange={e => setMeta({ ...meta, sgpa: e.target.value })} />
+            <label>GPA</label>
+            <input type="number" step="0.01" placeholder="8.5" value={meta.gpa} onChange={e => setMeta({ ...meta, gpa: e.target.value })} />
           </div>
           <div className="ms-meta-field">
             <label>CGPA</label>
@@ -254,7 +371,7 @@ const SubjectAdviceCard = ({ subject, idx, marksheetId }) => {
 };
 
 // ─── Single Marksheet Card ────────────────────────────────────────────────────
-const MarksheetCard = ({ sheet, onDelete }) => {
+const MarksheetCard = ({ sheet, onDelete, onAnalyzed }) => {
   const [expanded, setExpanded] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(sheet.aiAnalysis || null);
   const [analysing, setAnalysing] = useState(false);
@@ -265,12 +382,21 @@ const MarksheetCard = ({ sheet, onDelete }) => {
     try {
       const data = await analyzeMarksheet(sheet._id);
       setAiAnalysis(data.analysis);
+      if (onAnalyzed) onAnalyzed();
     } catch (e) {
-      setAiAnalysis('Analysis failed. Please try again later.');
+      setAiAnalysis(`Analysis failed: ${e.message || 'Please try again later.'}`);
     } finally {
       setAnalysing(false);
     }
   };
+
+  const getExpertDomain = () => {
+    if (!aiAnalysis) return null;
+    const match = aiAnalysis.match(/EXPERT DOMAIN:\s*(.+)/i);
+    return match ? match[1].trim() : null;
+  };
+
+  const expertDomain = getExpertDomain();
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete ${sheet.semester} marksheet?`)) return;
@@ -293,7 +419,8 @@ const MarksheetCard = ({ sheet, onDelete }) => {
           </div>
         </div>
         <div className="ms-card-meta-row">
-          {sheet.sgpa && <span className="ms-badge blue">SGPA {Number(sheet.sgpa).toFixed(2)}</span>}
+          {expertDomain && <span className="ms-badge expert"><FaBrain /> {expertDomain}</span>}
+          {sheet.gpa && <span className="ms-badge blue">GPA {Number(sheet.gpa).toFixed(2)}</span>}
           {sheet.cgpa && <span className="ms-badge purple">CGPA {Number(sheet.cgpa).toFixed(2)}</span>}
           {sheet.creditsEarned && <span className="ms-badge green">{sheet.creditsEarned} Credits</span>}
           <span className="ms-badge gray">{passCount}/{totalSubs} Passed</span>
@@ -776,8 +903,8 @@ const Profile = () => {
                 </div>
               ) : (
                 <div className="ms-list">
-                  {marksheets.map((sheet) => (
-                    <MarksheetCard key={sheet._id} sheet={sheet} onDelete={handleDeleteMarksheet} />
+                  {marksheets.map((m) => (
+                    <MarksheetCard key={m._id} sheet={m} onDelete={handleDeleteMarksheet} onAnalyzed={fetchProfileData} />
                   ))}
                 </div>
               )}

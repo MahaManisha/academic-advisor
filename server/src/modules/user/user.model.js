@@ -156,7 +156,7 @@ const userSchema = new mongoose.Schema(
           }
         ],
         cgpa: { type: Number },                          // Cumulative GPA for that semester
-        sgpa: { type: Number },                          // Semester GPA
+        gpa: { type: Number },                          // Semester GPA
         totalCredits: { type: Number },
         creditsEarned: { type: Number },
         aiAnalysis: { type: String }                    // Cached AI analysis text

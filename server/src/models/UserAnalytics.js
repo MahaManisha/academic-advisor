@@ -41,6 +41,10 @@ const UserAnalyticsSchema = new Schema({
         type: [String],
         default: []
     },
+    recommendedCourses: {
+        type: [String],
+        default: []
+    },
     algorithmVersion: {
         type: String,
         default: '1.0.0'

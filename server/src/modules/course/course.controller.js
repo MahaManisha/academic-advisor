@@ -1,5 +1,6 @@
 import Course from "./course.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
+import UserAnalytics from "../../models/UserAnalytics.js";
 import Groq from "groq-sdk";
 
 // Create a new course
@@ -74,17 +75,27 @@ export const deleteCourse = async (req, res) => {
 export const generateAIMissions = async (req, res) => {
     try {
         const userId = req.user?.id || req.user?.userId;
-        const profile = await StudentProfile.findOne({ userId });
+        const [profile, analytics] = await Promise.all([
+          StudentProfile.findOne({ userId }),
+          UserAnalytics.findOne({ userId })
+        ]);
 
         // Let's create an AI client
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
         let focusStr = "General Computer Science and Soft Skills";
         let skillStr = "basic analytical skills";
+        let aiRecsStr = "None";
 
         if (profile) {
             focusStr = profile.focusArea || profile.interests?.join(", ") || focusStr;
             skillStr = profile.skills?.map(s => `${s.domain} (${s.level})`).join(", ") || skillStr;
+        }
+
+        if (analytics) {
+            const tracks = analytics.recommendedTracks?.join(", ");
+            const courses = analytics.recommendedCourses?.join(", ");
+            aiRecsStr = `Expert Domains: ${tracks || 'N/A'}. Suggested Topics: ${courses || 'N/A'}`;
         }
 
         const prompt = `
@@ -92,7 +103,12 @@ export const generateAIMissions = async (req, res) => {
         The student focuses on: ${focusStr}.
         Their current known skills are: ${skillStr}.
         
-        Generate exactly 3 "Missions" (courses) to help them level up their skills.
+        ACADEMIC AI RECOMMENDATIONS (Based on Marksheet Analysis):
+        ${aiRecsStr}
+        
+        Based on their Expert Domains and Suggested Topics, generate exactly 3 "Missions" (courses) to help them level up their skills.
+        If a specific topic is suggested in the Academic AI Recommendations, create a mission for it.
+        
         IMPORTANT: For 'videoUrl' and 'thumbnail', you MUST provide a REAL, existing YouTube link to a relevant free educational video for each specific topic (e.g., from FreeCodeCamp, CrashCourse, Programming with Mosh, etc). Do NOT just copy the example placeholder URLs.
         Estimate a realistic 'duration' for each video.
         
@@ -110,7 +126,7 @@ export const generateAIMissions = async (req, res) => {
             "duration": "e.g., 2h 30m",
             "videoUrl": "REAL_YOUTUBE_URL_HERE",
             "thumbnail": "REAL_YOUTUBE_THUMBNAIL_URL_HERE",
-            "recommendationReason": "Because you want to learn X, this helps you achieve Y."
+            "recommendationReason": "Because you are an Expert in [Domain] and the AI suggested [Topic], this helps you achieve Y."
           }
         ]
         `;

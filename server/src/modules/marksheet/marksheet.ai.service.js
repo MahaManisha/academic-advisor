@@ -33,10 +33,17 @@ INSTRUCTIONS:
 1. Identify the student's strongest and weakest subjects based on grade points and marks.
 2. Highlight any subjects where the student failed or is at risk.
 3. Give specific, actionable improvement strategies for each weak subject.
-4. Based on the credit-heavy subjects, suggest career paths or specializations that align with strengths.
-5. Give motivational but realistic advice.
-6. Structure the response with clearly labeled sections (e.g., STRENGTHS, WEAK AREAS, IMPROVEMENT PLAN, CAREER SUGGESTIONS).
-7. Plain text only — no markdown asterisks or hashtags. Use CAPS for section headings.
+4. Based on the credit-heavy subjects and high grades, identify the student's "EXPERT DOMAIN" (e.g., Mathematical Analysis, Software Development, Theoretical Physics, etc.).
+5. Highlight this EXPERT DOMAIN clearly at the top.
+6. Give motivational but realistic advice.
+7. Structure the response with clearly labeled sections:
+   - EXPERT DOMAIN: (One short phrase)
+   - STRENGTHS:
+   - WEAK AREAS:
+   - IMPROVEMENT PLAN:
+   - LEARNING SUGGESTIONS:
+   - CAREER SUGGESTIONS:
+8. Plain text only — no markdown asterisks or hashtags. Use CAPS for section headings.
 
 Keep the total response under 400 words.`;
 
@@ -86,4 +93,121 @@ Keep the total response under 220 words.`;
   });
 
   return completion.choices[0]?.message?.content || "Advice unavailable.";
+};
+
+// ─── Extract structured marksheet data from an Image ────────────────────────
+export const extractMarksheetFromImageWithAI = async (base64Image) => {
+  const groq = getGroqClient();
+
+  const prompt = `You are an OCR and data extraction AI. An image of a student's marksheet/grade sheet is provided.
+Extract the relevant data and return it ONLY as a valid JSON object.
+IMPORTANT: For each subject, try your absolute best to identify the CREDITS. If not explicitly found, estimate them based on common university standards (usually 2, 3, or 4).
+If you cannot find a value at all, use 3 as a safe default for theory subjects.
+
+JSON SCHEMA:
+{
+  "semester": "String (e.g. 'Semester 3' or 'Term 2', guess if missing)",
+  "year": "String (e.g. '2024-2025', guess if missing)",
+  "cgpa": "Number or string of the cumulative GPA if present, otherwise empty string",
+  "sgpa": "Number or string of the semester GPA if present, otherwise empty string",
+  "totalCredits": "Number or string (total credits for the semester)",
+  "creditsEarned": "Number or string (credits successfully earned)",
+  "subjects": [
+    {
+      "name": "String (subject name)",
+      "code": "String (subject code if available, else empty)",
+      "credits": "Number (estimate if not clear, do not use null)",
+      "marksObtained": "Number (marks or score obtained)",
+      "maxMarks": "Number (maximum marks for the subject, default 100)",
+      "grade": "String (e.g., 'O', 'A+', 'B', 'P', 'F', whatever is on the sheet)",
+      "gradePoints": "Number (grade points earned, e.g. 9.0)",
+      "status": "String ('Pass', 'Fail', or 'Absent')"
+    }
+  ]
+}`;
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.2-11b-vision-preview",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          {
+            type: "image_url",
+            image_url: {
+              url: base64Image
+            }
+          }
+        ]
+      }
+    ],
+    temperature: 0.1,
+  });
+
+  const rawJson = completion.choices[0]?.message?.content || "{}";
+  console.log("AI VISION RAW OUTPUT:", rawJson);
+
+  try {
+    const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("AI did not return a valid JSON object.");
+    return JSON.parse(jsonMatch[0].trim());
+  } catch (err) {
+    console.error("Failed to parse AI vision output:", rawJson);
+    console.error("Parse Error Details:", err.message);
+    throw new Error("Failed to extract data from image.");
+  }
+};
+
+// ─── Extract structured marksheet data from PDF Text ────────────────────────
+export const extractMarksheetFromPdfTextWithAI = async (text) => {
+  const groq = getGroqClient();
+
+  // Sanitize text: remove control characters and non-printable chars that might break AI
+  const cleanText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, "").trim();
+
+  const prompt = `You are a data extraction AI. Extract mark/grade data from the following text of a student's marksheet and return it ONLY as a valid JSON object.
+  
+TEXT CONTENT:
+${cleanText.substring(0, 15000)} // Limit to 15k chars for safety
+
+JSON SCHEMA:
+{
+  "semester": "String",
+  "year": "String",
+  "cgpa": "Number/String",
+  "sgpa": "Number/String",
+  "totalCredits": "Number/String",
+  "creditsEarned": "Number/String",
+  "subjects": [
+    {
+      "name": "String",
+      "code": "String",
+      "credits": "Number",
+      "marksObtained": "Number",
+      "maxMarks": "Number",
+      "grade": "String",
+      "gradePoints": "Number",
+      "status": "String"
+    }
+  ]
+}`;
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.1,
+  });
+
+  const rawJson = completion.choices[0]?.message?.content || "{}";
+  console.log("AI PDF TEXT RAW OUTPUT:", rawJson);
+
+  try {
+    const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("AI did not return a valid JSON object.");
+    return JSON.parse(jsonMatch[0].trim());
+  } catch (err) {
+    console.error("Failed to parse AI PDF output:", rawJson);
+    throw new Error("Failed to extract data from PDF.");
+  }
 };

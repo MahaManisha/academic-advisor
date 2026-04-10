@@ -1,6 +1,12 @@
 // server/src/modules/marksheet/marksheet.controller.js
 import User from "../user/user.model.js";
-import { analyzeMarksheetWithAI, analyzeSubjectCreditsWithAI } from "./marksheet.ai.service.js";
+import UserAnalytics from "../../models/UserAnalytics.js";
+import { 
+  analyzeMarksheetWithAI, 
+  analyzeSubjectCreditsWithAI, 
+  extractMarksheetFromImageWithAI,
+  extractMarksheetFromPdfTextWithAI 
+} from "./marksheet.ai.service.js";
 
 // ─── GET all marksheets for the logged-in student ────────────────────────────
 export const getMarksheets = async (req, res, next) => {
@@ -79,15 +85,67 @@ export const analyzeMarksheetById = async (req, res, next) => {
       year: user.year
     };
 
-    const analysis = await analyzeMarksheetWithAI(sheet, studentContext);
+    const analysis = await analyzeMarksheetWithAI(sheet, studentContext).catch(err => {
+       console.error("Groq AI Error:", err);
+       throw new Error("AI provider is currently busy. Please try again.");
+    });
 
     // Cache the analysis back in the DB
     sheet.aiAnalysis = analysis;
-    await user.save();
+    
+    // Extract Expertise Domain if present
+    const domainMatch = analysis.match(/EXPERT DOMAIN:\s*(.+)/i);
+    const learningMatch = analysis.match(/LEARNING SUGGESTIONS:\s*([\s\S]*?)(?=\n[A-Z\s]+:|$)/i);
+    
+    if (domainMatch && domainMatch[1]) {
+      const expertDomain = domainMatch[1].trim();
+      let recommendedCourses = [];
+      
+      if (learningMatch && learningMatch[1]) {
+        recommendedCourses = learningMatch[1].trim().split('\n')
+          .map(line => line.replace(/^[-*•\d.]+\s*/, '').trim())
+          .filter(line => line.length > 3);
+      }
+      
+      console.log("Found Expert Domain:", expertDomain);
+      console.log("Found Learning Suggestions:", recommendedCourses);
 
+      // Perform updates concurrently to speed up response
+      await Promise.all([
+        UserAnalytics.findOneAndUpdate(
+          { userId: user._id },
+          { 
+            $pull: { 
+              recommendedTracks: expertDomain,
+              recommendedCourses: { $in: recommendedCourses }
+            } 
+          },
+          { upsert: true }
+        ).then(() => 
+          UserAnalytics.findOneAndUpdate(
+            { userId: user._id },
+            { 
+              $push: { 
+                recommendedTracks: { $each: [expertDomain], $position: 0 },
+                recommendedCourses: { $each: recommendedCourses, $position: 0 }
+              },
+              $set: { cognitiveProfile: `Expert in ${expertDomain}` }
+            }
+          )
+        ),
+        User.findByIdAndUpdate(user._id, { domain: expertDomain })
+      ]);
+    }
+
+    await user.save();
+    console.log("Analysis saved successfully for sheet:", id);
     res.json({ success: true, analysis });
   } catch (err) {
-    next(err);
+    console.error("Detailed AI Analysis Error:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: err.message || "Analysis failed due to a server error." 
+    });
   }
 };
 
@@ -107,6 +165,11 @@ export const analyzeSubject = async (req, res, next) => {
     }
 
     const subject = sheet.subjects[idx];
+    // Ensure credits are present for analysis
+    const subjectWithMeta = {
+      ...subject.toObject(),
+      credits: subject.credits || 3
+    };
 
     const studentContext = {
       department: user.department || user.domain,
@@ -114,9 +177,41 @@ export const analyzeSubject = async (req, res, next) => {
       year: user.year
     };
 
-    const advice = await analyzeSubjectCreditsWithAI(subject, studentContext);
+    const advice = await analyzeSubjectCreditsWithAI(subjectWithMeta, studentContext);
     res.json({ success: true, advice });
   } catch (err) {
     next(err);
+  }
+};
+
+// ─── AI: Extract structured data from image ──────────────────────────────────
+export const extractFromImage = async (req, res, next) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ message: "Base64 image data is required." });
+    }
+
+    const data = await extractMarksheetFromImageWithAI(image);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("Image Extraction Error:", err);
+    res.status(500).json({ message: "AI Extraction failed: " + err.message });
+  }
+};
+
+// ─── AI: Extract structured data from Text ───────────────────────────────────
+export const extractFromText = async (req, res, next) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: "Text is required." });
+    }
+
+    const data = await extractMarksheetFromPdfTextWithAI(text);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("Text Extraction Error:", err);
+    res.status(500).json({ message: "AI Analysis failed: " + err.message });
   }
 };
