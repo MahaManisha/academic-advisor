@@ -23,7 +23,7 @@ Return ONLY a valid JSON array matching this exact format, with 4 options per qu
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant",
             temperature: 0.7,
             max_tokens: 1000,
             response_format: { type: "json_object" }

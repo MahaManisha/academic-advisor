@@ -39,6 +39,7 @@ import Leaderboard from '../pages/Leaderboard';
 import Guilds from '../pages/Guilds';
 import Flashcards from '../pages/Flashcards';
 import Arena from '../pages/Arena';
+import CareerPath from '../pages/CareerPath';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -297,6 +298,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Arena />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career"
+          element={
+            <ProtectedRoute>
+              <CareerPath />
             </ProtectedRoute>
           }
         />

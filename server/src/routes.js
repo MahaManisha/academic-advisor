@@ -19,6 +19,7 @@ import courseRoutes from "./modules/course/course.routes.js";
 import configRoutes from "./modules/config/config.routes.js";
 import studyRoutes from "./modules/study/study.routes.js";
 import marksheetRoutes from "./modules/marksheet/marksheet.routes.js";
+import careerRoutes from "./modules/career/career.routes.js";
 
 const router = Router();
 
@@ -49,5 +50,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/guilds", guildRoutes);
 router.use("/flashcards", flashcardRoutes);
 router.use("/marksheets", marksheetRoutes);
+router.use("/career", careerRoutes);
 
 export default router;

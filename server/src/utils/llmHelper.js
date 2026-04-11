@@ -26,7 +26,7 @@ const generateLLMResponse = async (systemPrompt, userPrompt) => {
                     content: userPrompt
                 }
             ],
-            model: "llama3-8b-8192", // Using an open and capable model; feel free to change
+            model: "llama-3.1-8b-instant", // Updated from decommissioned llama3-8b-8192
             temperature: 0.7,
             max_tokens: 300
         });
