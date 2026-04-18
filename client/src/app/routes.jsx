@@ -40,6 +40,7 @@ import Guilds from '../pages/Guilds';
 import Flashcards from '../pages/Flashcards';
 import Arena from '../pages/Arena';
 import CareerPath from '../pages/CareerPath';
+import InterviewBot from '../pages/InterviewBot';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -307,6 +308,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <CareerPath />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/interview"
+          element={
+            <ProtectedRoute>
+              <InterviewBot />
             </ProtectedRoute>
           }
         />
