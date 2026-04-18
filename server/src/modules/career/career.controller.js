@@ -74,7 +74,7 @@ export const predictCareer = async (req, res) => {
 
     const ctx = buildStudentContext(user, analytics);
 
-    const prompt = `You are a Career Intelligence AI for students in India. Analyze this student's academic profile and predict their top 4 career paths.
+    const prompt = `You are an elite Career Intelligence AI. Analyze this student's academic profile and predict their top 4 advanced career paths that suit their skills.
 
 STUDENT PROFILE:
 Name: ${ctx.fullName}
@@ -89,29 +89,29 @@ Recommended Topics: ${ctx.suggestedCourses.join(', ') || 'Not yet analyzed'}
 ${ctx.aiAnalysisSummaries ? `Academic Analysis:\n${ctx.aiAnalysisSummaries}` : ''}
 
 INSTRUCTIONS:
-Based on their expert domain, department, and academic profile, generate exactly 4 career role predictions relevant to Indian job market.
-For each role, calculate a realistic match score (0-100).
-Be specific and practical about skill gaps. Provide actionable roadmap steps.
+Generate exactly 4 highly specific, high-paying career role predictions relevant to the student's domain.
+For each role, calculate a highly accurate and realistic match score (0-100).
+Provide actionable, detailed roadmap steps tailored specifically to their exact skill gaps. Do NOT provide generic advice. Give specialized technologies, specific frameworks, and high-level concepts.
 
-Return ONLY valid JSON (no markdown, no explanation, no code blocks) in this exact structure:
+Return ONLY a valid JSON object in this exact structure:
 {
   "currentSkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
   "overallReadiness": 65,
   "roles": [
     {
-      "role": "Software Development Engineer",
+      "role": "Senior Cloud Infrastructure Engineer",
       "matchScore": 78,
-      "description": "Building scalable backend/frontend systems for tech products",
-      "requiredSkills": ["DSA", "System Design", "React", "Node.js", "SQL"],
-      "skillGaps": ["System Design", "SQL"],
+      "description": "Architecting robust cloud microservices and deployment pipelines.",
+      "requiredSkills": ["Kubernetes", "AWS EKS", "Terraform", "Go"],
+      "skillGaps": ["Terraform", "Go"],
       "roadmap": [
-        "Week 1-2: Master Arrays, Strings, Trees on LeetCode",
-        "Week 3-4: Build a full-stack CRUD project",
-        "Week 5-6: Study OS and DBMS fundamentals",
-        "Week 7-8: Practice 2 mock interviews"
+        "Phase 1: Learn Go concurrency concepts and syntax heavily",
+        "Phase 2: Master Infrastructure as Code using Terraform provisioning",
+        "Phase 3: Deploy resilient microservices on AWS EKS",
+        "Phase 4: Design high-availability multi-region architectures"
       ],
-      "avgSalary": "₹6-18 LPA",
-      "difficulty": "Medium"
+      "avgSalary": "₹15-35 LPA",
+      "difficulty": "Hard"
     }
   ]
 }`;
@@ -123,16 +123,12 @@ Return ONLY valid JSON (no markdown, no explanation, no code blocks) in this exa
       const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.6,
-        max_tokens: 2500
+        temperature: 0.7,
+        response_format: { type: "json_object" }
       });
 
       const raw = completion.choices[0]?.message?.content || '{}';
-      // Strip markdown code fences if present
-      const cleaned = raw.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
-      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('AI returned invalid response format');
-      aiData = JSON.parse(jsonMatch[0]);
+      aiData = JSON.parse(raw);
     } catch (aiError) {
       console.warn('⚠️ Groq AI error, using intelligent fallback:', aiError.message);
       // Smart fallback based on the user's actual domain

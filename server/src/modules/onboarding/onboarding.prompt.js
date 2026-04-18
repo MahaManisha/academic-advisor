@@ -28,12 +28,12 @@ ${retrievedChunks}
 DOMAIN: ${domain}
 ${actOnAccessibility}
 INSTRUCTIONS:
-1. Generate an array of exactly 15 multiple-choice questions based strictly on the Context and Domain.
+1. Generate an array of exactly 15 standardized, high-quality multiple-choice questions for the specified Domain. Use the Context as a baseline, but use your comprehensive trained knowledge to ensure these are standard domain-specific questions (not basic or generic).
 2. The questions must adhere to this Structure of Mixed Difficulty:
-   - 5 "Easy" questions testing basic concepts.
-   - 5 "Medium" questions testing application.
-   - 5 "Hard" questions testing problem-solving.
-3. Keep the questions focused and analytical.
+   - 5 "Easy" questions testing basic, foundational concepts.
+   - 5 "Medium" questions testing intermediate application.
+   - 5 "Hard" questions testing advanced problem-solving and deep conceptual understanding.
+3. Keep the questions highly relevant to the specific domain.
 4. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
 {
   "questions": [
@@ -73,3 +73,17 @@ INSTRUCTIONS:
 }
 `;
 
+export const getGenerateOnboardingOptionsPrompt = (domain) => `
+You are an Academic Advisor AI. A student specializing in the domain "${domain}" is currently onboarding onto the platform.
+We need to present them with standard, highly relevant Interests and Career Goals to choose from.
+
+INSTRUCTIONS:
+1. Generate a list of exactly 12 standard "Interests" (academic/professional areas) that are highly relevant to ${domain}.
+2. Generate a list of exactly 8 standard "Career Goals" (job roles/titles) that are strongly associated with ${domain}.
+3. The options must NOT be generic IT/Computer Science unless the domain is IT/Computer Science.
+4. Return ONLY a JSON object with this exact format, without any markdown formatting or ticks:
+{
+  "interests": ["Interest 1", "Interest 2", "Interest 3", "Interest 4", "Interest 5", "Interest 6", "Interest 7", "Interest 8", "Interest 9", "Interest 10", "Interest 11", "Interest 12"],
+  "careerGoals": ["Goal 1", "Goal 2", "Goal 3", "Goal 4", "Goal 5", "Goal 6", "Goal 7", "Goal 8"]
+}
+`;

@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import { getDiagnosticTestPrompt, getDiagnosticEvaluationPrompt } from "./onboarding.prompt.js";
+import { getDiagnosticTestPrompt, getDiagnosticEvaluationPrompt, getGenerateOnboardingOptionsPrompt } from "./onboarding.prompt.js";
 import { scrapeSyllabus } from "../../utils/scrape.service.js";
 
 const getGroqClient = () => {
@@ -76,5 +76,25 @@ export const evaluateDiagnosticTest = async (domain, questions, studentAnswers, 
     } catch (error) {
         console.error("Diagnostic Evaluation Error:", error);
         throw new Error("Failed to evaluate diagnostic test.");
+    }
+};
+
+export const generateOnboardingOptions = async (domain) => {
+    try {
+        const prompt = getGenerateOnboardingOptionsPrompt(domain);
+
+        const groq = getGroqClient();
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+        });
+
+        const text = completion.choices[0]?.message?.content || "{}";
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Generate Onboarding Options Error:", error);
+        return null; // return null to allow fallback to static lists if this fails
     }
 };

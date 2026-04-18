@@ -1,5 +1,6 @@
 import Onboarding from './onboarding.model.js';
 import User from '../user/user.model.js';
+import { generateOnboardingOptions } from './onboarding.rag.service.js';
 
 // Hardcoded Syllabus Map
 const SYLLABUS_MAP = {
@@ -104,6 +105,25 @@ export const getOnboardingQuestions = async (userId) => {
         }
     }
 
+    // Generate specific interests and career goals using the newly added groq functionality
+    let interestsList = INTERESTS_LIST;
+    let careerGoalsList = CAREER_GOALS;
+    const domain = user.course || user.learningDomain || "Computer Science";
+    
+    try {
+        const dynamicOptions = await generateOnboardingOptions(domain);
+        if (dynamicOptions) {
+            if (dynamicOptions.interests && dynamicOptions.interests.length > 0) {
+                interestsList = dynamicOptions.interests;
+            }
+            if (dynamicOptions.careerGoals && dynamicOptions.careerGoals.length > 0) {
+                careerGoalsList = dynamicOptions.careerGoals;
+            }
+        }
+    } catch (err) {
+        console.error("Failed to generate dynamic onboarding options:", err.message);
+    }
+
     return {
         user: {
             name: user.fullName,
@@ -111,8 +131,8 @@ export const getOnboardingQuestions = async (userId) => {
             year: user.year
         },
         subjects,
-        interests: INTERESTS_LIST,
-        careerGoals: CAREER_GOALS,
+        interests: interestsList,
+        careerGoals: careerGoalsList,
         learningStyles: LEARNING_STYLES
     };
 };
