@@ -64,6 +64,26 @@ export const getMentorDashboard = async (req, res, next) => {
   }
 };
 
+export const respondToRequest = async (req, res, next) => {
+  try {
+    const { requestId, status } = req.body;
+    const request = await mentorService.respondToRequest(requestId, status);
+    res.status(200).json({ success: true, request });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMentorStudents = async (req, res, next) => {
+  try {
+    const mentorProfile = await mentorService.getMentorDashboardStats(req.user.id);
+    const students = await mentorService.getMentorStudents(mentorProfile.mentor._id);
+    res.status(200).json({ success: true, students });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const submitFeedback = async (req, res, next) => {
   try {
     const { mentorId, rating, comment } = req.body;

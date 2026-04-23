@@ -9,6 +9,8 @@ router.post("/generate-assessment", authMiddleware, mentorController.generateAss
 router.post("/evaluate-assessment", authMiddleware, mentorController.evaluateAssessment);
 router.get("/dashboard", authMiddleware, mentorController.getMentorDashboard);
 router.get("/requests", authMiddleware, mentorController.getMentorRequests);
+router.post("/respond", authMiddleware, mentorController.respondToRequest);
+router.get("/students", authMiddleware, mentorController.getMentorStudents);
 
 // Student accessible routes
 router.get("/ranked", authMiddleware, mentorController.getRankedMentors);

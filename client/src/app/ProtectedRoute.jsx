@@ -81,11 +81,11 @@ const ProtectedRoute = ({ children }) => {
       return <Navigate to="/mentor-onboarding" replace />;
     }
     if (isOnboarded && isTryingToAccessMentorOnboarding) {
-      return <Navigate to="/mentor-dashboard" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
     // Block mentors from student specific paths if needed, or just let them through
     if (location.pathname === '/onboarding' || location.pathname === '/assessment-test') {
-       return <Navigate to="/mentor-dashboard" replace />;
+       return <Navigate to="/dashboard" replace />;
     }
     return children;
   }

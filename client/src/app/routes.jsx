@@ -50,8 +50,20 @@ import MentorList from '../pages/MentorList';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
+import { useAuth } from '../context/AuthContext';
+
+const DashboardSwitcher = () => {
+  const { user } = useAuth();
+  console.log("Rendering Dashboard for Role:", user?.role);
+  return user?.role === 'mentor' ? <MentorDashboard /> : <Dashboard />;
+};
 
 const AppRoutes = () => {
+  const { user } = useAuth();
+  
+  // Debug: Verify user role for dashboard routing
+  console.log("AppRoutes Current User Role:", user?.role);
+
   return (
     <BrowserRouter>
       <PageAnnouncer />
@@ -143,7 +155,7 @@ const AppRoutes = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardSwitcher />
             </ProtectedRoute>
           }
         />
@@ -341,14 +353,6 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MentorOnboarding />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mentor-dashboard"
-          element={
-            <ProtectedRoute>
-              <MentorDashboard />
             </ProtectedRoute>
           }
         />

@@ -56,7 +56,7 @@ const Login = () => {
         if (!result.user.onboardingCompleted) {
           navigate('/mentor-onboarding');
         } else {
-          navigate('/mentor-dashboard');
+          navigate('/dashboard');
         }
       } else {
         await triggerAction('DAILY_LOGIN');
@@ -141,7 +141,7 @@ const Login = () => {
         if (!result.user.onboardingCompleted) {
           navigate('/mentor-onboarding');
         } else {
-          navigate('/mentor-dashboard');
+          navigate('/dashboard');
         }
       } else {
         // Fallback for non-mentors logging in here

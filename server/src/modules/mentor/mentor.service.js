@@ -137,9 +137,36 @@ export const requestMentorship = async (studentId, mentorId, message) => {
 };
 
 export const getMentorRequests = async (mentorId) => {
-  return await MentorRequest.find({ mentorId })
+  return await MentorRequest.find({ mentorId, status: "pending" })
     .populate("studentId", "fullName email course")
     .sort({ createdAt: -1 });
+};
+
+export const respondToRequest = async (requestId, status) => {
+  const request = await MentorRequest.findById(requestId);
+  if (!request) throw new Error("Request not found");
+  
+  request.status = status; // "accepted" or "rejected"
+  await request.save();
+
+  if (status === "accepted") {
+    // Optionally create a chat channel or notification here
+  }
+
+  return request;
+};
+
+export const getMentorStudents = async (mentorId) => {
+  // Students whose requests have been accepted
+  const requests = await MentorRequest.find({ mentorId, status: "accepted" })
+    .populate("studentId", "fullName email course avatar");
+  
+  return requests.map(req => ({
+    ...req.studentId.toObject(),
+    requestId: req._id,
+    status: 'Active', // Mock active status
+    connectedAt: req.updatedAt
+  }));
 };
 
 export const getMentorDashboardStats = async (userId) => {

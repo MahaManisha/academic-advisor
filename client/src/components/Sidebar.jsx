@@ -19,7 +19,8 @@ import {
   FaCrosshairs,
   FaCompass,
   FaMicrophone,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaComment
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -66,9 +67,12 @@ const Sidebar = ({ isOpen, onClose, user }) => {
 
   // Mentor navigation links
   const mentorNavigationLinks = [
-    { path: '/mentor-dashboard', icon: <FaTachometerAlt />, label: 'Command Center' },
-    { path: '/mentors', icon: <FaUsers />, label: 'Mentor Directory' }, // Let them see other mentors
-    { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
+    { path: '/dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
+    { path: '/mentor/requests', icon: <FaClipboardList />, label: 'Student Requests' },
+    { path: '/mentor/students', icon: <FaUsers />, label: 'My Students' },
+    { path: '/mentor/sessions', icon: <FaCalendarAlt />, label: 'Sessions' },
+    { path: '/mentor/chat', icon: <FaComment />, label: 'Chat' },
+    { path: '/mentor/performance', icon: <FaChartLine />, label: 'Performance' },
     { path: '/profile', icon: <FaUser />, label: 'Profile' },
     { path: '/settings', icon: <FaCog />, label: 'Settings' },
   ];
