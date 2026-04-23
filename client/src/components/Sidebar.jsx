@@ -44,6 +44,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     { path: '/planner', icon: <FaCalendarAlt />, label: 'Study Planner' },
     { path: '/advisor-chat', icon: <FaRobot />, label: 'AI Advisor' },
     { path: '/peer-chat', icon: <FaUsers />, label: 'Peer Chat' },
+    { path: '/mentors', icon: <FaChalkboardTeacher />, label: 'Mentor Hub' },
     { path: '/guilds', icon: <FaShieldAlt />, label: 'Study Factions' },
     { path: '/arena', icon: <FaCrosshairs />, label: 'PvP Arena' },
     { path: '/courses', icon: <FaBook />, label: 'My Courses' },

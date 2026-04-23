@@ -14,7 +14,8 @@ import {
   FaTasks,
   FaArrowUp,
   FaPlus,
-  FaMedal
+  FaMedal,
+  FaChalkboardTeacher
 } from 'react-icons/fa';
 import { FaVideo } from 'react-icons/fa';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
@@ -146,6 +147,16 @@ const Dashboard = () => {
       rgb: '255, 51, 102',
       stats: 'Earn XP for focusing',
       path: '#focus',
+    },
+    {
+      id: 6,
+      title: 'Mentor Hub',
+      description: 'Connect with expert mentors for guidance',
+      icon: <FaChalkboardTeacher />,
+      color: '#a78bfa',
+      rgb: '167, 139, 250',
+      stats: 'Find a Mentor',
+      path: '/mentors',
     },
   ];
 
