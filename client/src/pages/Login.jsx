@@ -1,7 +1,7 @@
 // client/src/pages/Login.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaUserShield, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUserShield, FaChalkboardTeacher, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useGamification } from '../context/GamificationContext';
 import './Login.css';
@@ -18,6 +18,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminCredentials, setAdminCredentials] = useState({
+    email: '',
+    password: '',
+  });
+  const [showMentorModal, setShowMentorModal] = useState(false);
+  const [mentorCredentials, setMentorCredentials] = useState({
     email: '',
     password: '',
   });
@@ -41,10 +46,18 @@ const Login = () => {
 
       // ✅ SMART REDIRECT LOGIC
       const isAdmin = result.user.role === 'admin';
+      const isMentor = result.user.role === 'mentor';
 
       if (isAdmin) {
         // ✅ Admin → Admin Dashboard (no onboarding)
         navigate('/admin/dashboard');
+      } else if (isMentor) {
+        // ✅ Mentor → Mentor Dashboard or Onboarding
+        if (!result.user.onboardingCompleted) {
+          navigate('/mentor-onboarding');
+        } else {
+          navigate('/mentor-dashboard');
+        }
       } else {
         await triggerAction('DAILY_LOGIN');
 
@@ -108,6 +121,47 @@ const Login = () => {
     setError('');
   };
 
+  const handleMentorChange = (e) => {
+    setMentorCredentials({
+      ...mentorCredentials,
+      [e.target.name]: e.target.value,
+    });
+    if (error) setError('');
+  };
+
+  const handleMentorSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await login(mentorCredentials);
+
+      if (result.user.role === 'mentor') {
+        if (!result.user.onboardingCompleted) {
+          navigate('/mentor-onboarding');
+        } else {
+          navigate('/mentor-dashboard');
+        }
+      } else {
+        // Fallback for non-mentors logging in here
+        navigate('/dashboard');
+      }
+
+      setShowMentorModal(false);
+    } catch (err) {
+      setError(err.message || 'Mentor login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeMentorModal = () => {
+    setShowMentorModal(false);
+    setMentorCredentials({ email: '', password: '' });
+    setError('');
+  };
+
   return (
     <div className="login-container">
       <div className="login-card">
@@ -152,17 +206,33 @@ const Login = () => {
           <span>OR</span>
         </div>
 
-        <button
-          onClick={() => setShowAdminModal(true)}
-          className="admin-login-button"
-          disabled={loading}
-        >
-          <FaUserShield />
-          <span>Login as Admin</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => setShowAdminModal(true)}
+            className="admin-login-button"
+            disabled={loading}
+            style={{ flex: 1 }}
+          >
+            <FaUserShield />
+            <span>Login as Admin</span>
+          </button>
 
-        <p className="register-link">
+          <button
+            onClick={() => setShowMentorModal(true)}
+            className="admin-login-button"
+            disabled={loading}
+            style={{ flex: 1, borderColor: '#a78bfa', color: '#a78bfa' }}
+          >
+            <FaChalkboardTeacher />
+            <span>Login as Mentor</span>
+          </button>
+        </div>
+
+        <p className="register-link" style={{ marginTop: '20px' }}>
           Don't have an account? <Link to="/register">Sign up</Link>
+        </p>
+        <p className="register-link" style={{ marginTop: '5px' }}>
+          Want to guide others? <Link to="/mentor-signup">Apply as Mentor</Link>
         </p>
       </div>
 
@@ -227,6 +297,74 @@ const Login = () => {
                   type="submit"
                   className="login-button"
                   disabled={loading}
+                >
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ✨ Mentor Login Modal */}
+      {showMentorModal && (
+        <div className="modal-overlay" onMouseDown={closeMentorModal}>
+          <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Mentor Login</h2>
+              <button
+                className="modal-close-btn"
+                onClick={closeMentorModal}
+                type="button"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <form onSubmit={handleMentorSubmit} className="admin-login-form">
+              {error && <div className="error-message">{error}</div>}
+
+              <div className="input-group">
+                <FaEnvelope className="input-icon" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Mentor Email"
+                  value={mentorCredentials.email}
+                  onChange={handleMentorChange}
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
+
+              <div className="input-group">
+                <FaLock className="input-icon" />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={mentorCredentials.password}
+                  onChange={handleMentorChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="modal-buttons">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={closeMentorModal}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="login-button"
+                  disabled={loading}
+                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)' }}
                 >
                   {loading ? 'Logging in...' : 'Login'}
                 </button>

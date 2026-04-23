@@ -21,6 +21,7 @@ import studyRoutes from "./modules/study/study.routes.js";
 import marksheetRoutes from "./modules/marksheet/marksheet.routes.js";
 import careerRoutes from "./modules/career/career.routes.js";
 import interviewRoutes from "./modules/interview/interview.routes.js";
+import mentorRoutes from "./modules/mentor/mentor.routes.js";
 
 const router = Router();
 
@@ -53,5 +54,6 @@ router.use("/flashcards", flashcardRoutes);
 router.use("/marksheets", marksheetRoutes);
 router.use("/career", careerRoutes);
 router.use("/interview", interviewRoutes);
+router.use("/mentor", mentorRoutes);
 
 export default router;

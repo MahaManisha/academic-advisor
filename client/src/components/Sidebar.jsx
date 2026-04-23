@@ -18,13 +18,15 @@ import {
   FaLayerGroup,
   FaCrosshairs,
   FaCompass,
-  FaMicrophone
+  FaMicrophone,
+  FaChalkboardTeacher
 } from 'react-icons/fa';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
-  // Check if user is admin
+  // Check role
   const isAdmin = user?.role === 'admin';
+  const isMentor = user?.role === 'mentor';
 
   // Get actual badge counts from user data
   const pendingAssessments = user?.pendingAssessments || 0;
@@ -62,8 +64,17 @@ const Sidebar = ({ isOpen, onClose, user }) => {
     { path: '/admin/settings', icon: <FaCog />, label: 'Settings' },
   ];
 
+  // Mentor navigation links
+  const mentorNavigationLinks = [
+    { path: '/mentor-dashboard', icon: <FaTachometerAlt />, label: 'Command Center' },
+    { path: '/mentors', icon: <FaUsers />, label: 'Mentor Directory' }, // Let them see other mentors
+    { path: '/leaderboard', icon: <FaCrown />, label: 'Topper Board' },
+    { path: '/profile', icon: <FaUser />, label: 'Profile' },
+    { path: '/settings', icon: <FaCog />, label: 'Settings' },
+  ];
+
   // Choose navigation based on user role
-  const navigationLinks = isAdmin ? adminNavigationLinks : studentNavigationLinks;
+  const navigationLinks = isAdmin ? adminNavigationLinks : (isMentor ? mentorNavigationLinks : studentNavigationLinks);
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -125,6 +136,11 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                   <>
                     <FaUserShield style={{ marginRight: '4px', fontSize: '10px' }} />
                     Admin
+                  </>
+                ) : isMentor ? (
+                  <>
+                    <FaChalkboardTeacher style={{ marginRight: '4px', fontSize: '10px' }} />
+                    Mentor
                   </>
                 ) : (
                   user?.role || 'Student'

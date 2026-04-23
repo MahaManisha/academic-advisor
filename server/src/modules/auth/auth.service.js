@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../user/user.model.js";
 import Otp from "./otp.model.js";
+import Mentor from "../mentor/mentor.model.js";
 import { sendOtpEmail } from "../../utils/email.service.js";
 
 // Helper to generate 6 digit OTP
@@ -88,7 +89,7 @@ export const completeRegistration = async (data) => {
     fullName,
     email,
     passwordHash,
-    role: "student",
+    role: data.role || "student",
     emailVerified: true,
     academicStatus: data.academicStatus,
 
@@ -122,6 +123,17 @@ export const completeRegistration = async (data) => {
 
   // Cleanup OTPs
   await Otp.deleteMany({ email });
+
+  // Create Mentor Profile if role is mentor
+  if (data.role === "mentor") {
+    await Mentor.create({
+      userId: user._id,
+      domain: data.domain || data.fieldOfStudy || "General",
+      skills: data.skills || [],
+      experience: data.experience || 0,
+      qualification: data.qualification || "",
+    });
+  }
 
   // Login Token
   const token = jwt.sign(
@@ -205,6 +217,56 @@ export const loginUser = async (data) => {
   );
 
   const userResponse = user.toObject ? user.toObject() : user;
+  delete userResponse.passwordHash;
+
+  return { token, user: userResponse };
+};
+
+// 4. Direct Mentor Registration (Bypassing OTP for simplicity as per UI design)
+export const registerMentor = async (data) => {
+  const existingUser = await User.findOne({ email: data.email });
+  if (existingUser) {
+    throw { status: 400, message: "Email already registered" };
+  }
+
+  const passwordHash = await bcrypt.hash(data.password, 10);
+
+  // Create User
+  const user = await User.create({
+    fullName: data.fullName,
+    email: data.email,
+    passwordHash,
+    role: "mentor",
+    emailVerified: true, // Auto verify for mentors based on current simplified flow
+    domain: data.domain,
+    qualification: data.qualification,
+    skills: data.skills, // Array
+    profileCompleted: true,
+    onboardingCompleted: false
+  });
+
+  // Create Mentor Profile
+  await Mentor.create({
+    userId: user._id,
+    domain: data.domain || "General",
+    skills: data.skills || [],
+    experience: data.experience || 0,
+    qualification: data.qualification || "",
+  });
+
+  // Login Token
+  const token = jwt.sign(
+    {
+      userId: user._id,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      onboardingCompleted: user.onboardingCompleted
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  const userResponse = user.toObject();
   delete userResponse.passwordHash;
 
   return { token, user: userResponse };

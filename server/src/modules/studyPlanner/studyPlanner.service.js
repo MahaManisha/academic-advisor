@@ -3,6 +3,7 @@ import StudyPlan from "./studyPlan.model.js";
 import StudentProfile from "../studentProfile/studentProfile.model.js";
 import StudySession from "../study/study.model.js";
 import Recommendation from "../recommendation/recommendation.model.js";
+import CareerProfile from "../career/career.model.js";
 import {
   calculatePriority,
   estimateStudyTime,
@@ -50,14 +51,22 @@ export const generateStudyPlan = async (userId, period = "weekly") => {
       });
     }
   } else {
-    // Fallback if no profile is found or if skills array is empty
-    const defaultTopics = ["Data Structures", "Algorithms", "Web Development", "Database Management"];
+    // Dynamically Base Fallback on Student's Career/Domain
+    const careerProfile = await CareerProfile.findOne({ userId });
+    let domainTopics = ["Data Structures", "Algorithms", "Web Development", "Database Management"];
+    
+    if (careerProfile && careerProfile.expertDomain) {
+       domainTopics = [careerProfile.expertDomain, "Core Computer Science", "System Design"];
+    } else if (profile && profile.interests && profile.interests.length > 0) {
+       domainTopics = profile.interests;
+    }
+
     let taskCount = 0;
-    for (const topic of defaultTopics) {
+    for (const topic of domainTopics) {
       if (isBurnedOut && taskCount >= 2) break; // Only give 2 light tasks if burned out
 
       tasks.push({
-        title: isBurnedOut ? `Light Review: ${topic}` : `Master ${topic}`,
+        title: isBurnedOut ? `Light Domain Review: ${topic}` : `Master Domain: ${topic}`,
         domain: topic,
         estimatedMinutes: isBurnedOut ? 30 : 60,
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
@@ -95,5 +104,30 @@ export const updateTaskStatus = async (planId, taskId, status) => {
   }
 
   await plan.save();
+  return plan;
+};
+
+export const addPlacementPrepTask = async (userId, company, role) => {
+  let plan = await StudyPlan.findOne({ userId, active: true });
+  
+  // If no active plan exists, quickly generate one
+  if (!plan) {
+    plan = await generateStudyPlan(userId);
+  }
+
+  // Check if a similar placement prep task already exists to avoid spam
+  const existingTask = plan.tasks.find(t => t.domain === "Placement Prep" && t.title.includes(company));
+  
+  if (!existingTask) {
+    plan.tasks.push({
+      title: `Interview Prep: ${company} - ${role}`,
+      domain: "Placement Prep",
+      estimatedMinutes: 60,
+      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Due in 2 days
+      status: "pending"
+    });
+
+    await plan.save();
+  }
   return plan;
 };

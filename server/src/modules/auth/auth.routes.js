@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { register, login, verify, resend, complete } from "./auth.controller.js";
+import { register, login, verify, resend, complete, registerMentor } from "./auth.controller.js";
 
 const router = Router();
 
 router.post("/register", register);
+router.post("/register-mentor", registerMentor);
 router.post("/login", login);
 router.post("/verify-email", verify);
 router.post("/resend-otp", resend);

@@ -1,4 +1,5 @@
 import { generateInterviewQuestions, generateInterviewRounds } from "./interview.service.js";
+import { addPlacementPrepTask } from "../studyPlanner/studyPlanner.service.js";
 
 export const getRounds = async (req, res) => {
     try {
@@ -9,6 +10,13 @@ export const getRounds = async (req, res) => {
         }
 
         const data = await generateInterviewRounds(company, role);
+
+        // Auto-add this company target to the user's study planner in the background
+        if (req.user && req.user.id) {
+            addPlacementPrepTask(req.user.id, company, role).catch(err => {
+                console.error("Failed to auto-add placement task to study planner:", err);
+            });
+        }
 
         res.status(200).json({
             success: true,

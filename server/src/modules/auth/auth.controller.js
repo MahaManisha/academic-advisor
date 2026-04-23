@@ -1,5 +1,5 @@
 // server/src/modules/auth/auth.controller.js
-import { registerUser, loginUser, verifyEmail, resendOtp, completeRegistration } from "./auth.service.js";
+import { registerUser, loginUser, verifyEmail, resendOtp, completeRegistration, registerMentor as registerMentorService } from "./auth.service.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -10,6 +10,15 @@ export const register = async (req, res, next) => {
       email: response.email,
       message: "Registration initiated. Please check your email for OTP."
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const registerMentor = async (req, res, next) => {
+  try {
+    const result = await registerMentorService(req.body);
+    res.status(201).json({ success: true, ...result });
   } catch (err) {
     next(err);
   }

@@ -42,6 +42,12 @@ import Arena from '../pages/Arena';
 import CareerPath from '../pages/CareerPath';
 import InterviewBot from '../pages/InterviewBot';
 
+// Mentor Pages
+import MentorSignup from '../pages/MentorSignup';
+import MentorOnboarding from '../pages/MentorOnboarding';
+import MentorDashboard from '../pages/MentorDashboard';
+import MentorList from '../pages/MentorList';
+
 // Other Pages
 import NotFound from '../pages/NotFound';
 
@@ -317,6 +323,40 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <InterviewBot />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Mentor Routes */}
+        <Route
+          path="/mentor-signup"
+          element={
+            <PublicRoute>
+              <MentorSignup />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/mentor-onboarding"
+          element={
+            <ProtectedRoute>
+              <MentorOnboarding />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor-dashboard"
+          element={
+            <ProtectedRoute>
+              <MentorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentors"
+          element={
+            <ProtectedRoute>
+              <MentorList />
             </ProtectedRoute>
           }
         />

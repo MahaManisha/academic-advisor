@@ -69,8 +69,28 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/verify-email" state={{ email: user.email }} replace />;
   }
 
-  // ✅ For STUDENTS: Check onboarding status
   const isOnboarded = user?.onboardingCompleted;
+
+  // ✅ For MENTORS: Check onboarding status
+  const isMentor = user?.role === 'mentor';
+  const mentorOnboardingPaths = ['/mentor-onboarding'];
+  const isTryingToAccessMentorOnboarding = mentorOnboardingPaths.includes(location.pathname);
+
+  if (isMentor) {
+    if (!isOnboarded && !isTryingToAccessMentorOnboarding) {
+      return <Navigate to="/mentor-onboarding" replace />;
+    }
+    if (isOnboarded && isTryingToAccessMentorOnboarding) {
+      return <Navigate to="/mentor-dashboard" replace />;
+    }
+    // Block mentors from student specific paths if needed, or just let them through
+    if (location.pathname === '/onboarding' || location.pathname === '/assessment-test') {
+       return <Navigate to="/mentor-dashboard" replace />;
+    }
+    return children;
+  }
+
+  // ✅ For STUDENTS: Check onboarding status
   const onboardingPaths = ['/onboarding', '/assessment-test'];
   const isTryingToAccessOnboarding = onboardingPaths.includes(location.pathname);
 
