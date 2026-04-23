@@ -47,6 +47,9 @@ import MentorSignup from '../pages/MentorSignup';
 import MentorOnboarding from '../pages/MentorOnboarding';
 import MentorDashboard from '../pages/MentorDashboard';
 import MentorList from '../pages/MentorList';
+import MentorRequests from '../pages/MentorRequests';
+import MentorSubPage from '../pages/MentorSubPage';
+import { FaUsers, FaCalendarAlt, FaComment, FaChartLine } from 'react-icons/fa';
 
 // Other Pages
 import NotFound from '../pages/NotFound';
@@ -361,6 +364,48 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <MentorList />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Mentor Sub-pages */}
+        <Route
+          path="/mentor/requests"
+          element={
+            <ProtectedRoute>
+              <MentorRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor/students"
+          element={
+            <ProtectedRoute>
+              <MentorSubPage title="My Students" subtitle="Manage your roster" icon={<FaUsers />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor/sessions"
+          element={
+            <ProtectedRoute>
+              <MentorSubPage title="Sessions" subtitle="View your schedule" icon={<FaCalendarAlt />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor/chat"
+          element={
+            <ProtectedRoute>
+              <MentorSubPage title="Mentor Chat" subtitle="Communicate with students" icon={<FaComment />} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor/performance"
+          element={
+            <ProtectedRoute>
+              <MentorSubPage title="Performance" subtitle="Your stats and feedback" icon={<FaChartLine />} />
             </ProtectedRoute>
           }
         />
