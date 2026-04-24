@@ -10,6 +10,7 @@ import {
   getCurrentUser,
   completeOnboarding,
   getUserProfile,
+  updateProfile,
   updateUserPreferences,
   updateAccessibilityPreferences
 } from "./user.controller.js";
@@ -19,6 +20,7 @@ const router = Router();
 // Only logged-in users
 router.get("/me", authMiddleware, getCurrentUser);
 router.get("/profile", authMiddleware, getUserProfile);
+router.patch("/profile", authMiddleware, updateProfile);
 router.patch("/preferences", authMiddleware, updateUserPreferences);
 router.patch("/accessibility", authMiddleware, updateAccessibilityPreferences);
 router.post("/onboarding", authMiddleware, completeOnboarding);

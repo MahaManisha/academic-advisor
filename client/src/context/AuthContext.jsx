@@ -94,9 +94,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Update user profile (sync state)
-  const updateProfile = async (updatedUser) => {
-    setUser(updatedUser);
-    setUserState(updatedUser);
+  const updateProfile = async (profileData) => {
+    try {
+      const { updateUserProfile } = await import('../api/user.api');
+      const data = await updateUserProfile(profileData);
+      if (data.success && data.user) {
+        setUser(data.user);
+        setUserState(data.user);
+      }
+      return data;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
   };
 
   // Logout method

@@ -218,6 +218,38 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+// Update Basic Profile
+export const updateProfile = async (req, res) => {
+    try {
+        const { fullName, course, domain, department } = req.body;
+        const userId = req.user.id;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if (fullName) user.fullName = fullName;
+        if (course) user.course = course;
+        if (domain) user.domain = domain;
+        if (department) user.department = department;
+
+        await user.save();
+
+        const updatedUser = user.toObject();
+        delete updatedUser.passwordHash;
+
+        res.json({ 
+            success: true, 
+            message: "Profile updated successfully", 
+            user: updatedUser 
+        });
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
 // Get current logged in user (Full Profile)
 export const getCurrentUser = async (req, res) => {
     try {

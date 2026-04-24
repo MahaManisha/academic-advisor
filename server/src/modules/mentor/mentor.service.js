@@ -99,7 +99,7 @@ export const evaluateAssessment = async (userId, answers, questions) => {
   return { score, rating, status: mentor?.status };
 };
 
-export const getRankedMentors = async (filters = {}) => {
+export const getRankedMentors = async (studentId, filters = {}) => {
   const query = { status: "approved" };
   if (filters.domain) {
     query.domain = { $regex: new RegExp(filters.domain, "i") };
@@ -109,6 +109,10 @@ export const getRankedMentors = async (filters = {}) => {
     .populate("userId", "fullName email")
     .sort({ rating: -1, experience: -1 });
 
+  // Get current student's requests to show connection status
+  const studentRequests = await MentorRequest.find({ studentId });
+  const requestMap = new Map(studentRequests.map(r => [r.mentorId.toString(), r.status]));
+
   return mentors.map((m) => ({
     id: m._id,
     userId: m.userId._id,
@@ -117,7 +121,8 @@ export const getRankedMentors = async (filters = {}) => {
     skills: m.skills,
     experience: m.experience,
     rating: m.rating,
-    totalSessions: m.totalSessions
+    totalSessions: m.totalSessions,
+    connectionStatus: requestMap.get(m._id.toString()) || "none"
   }));
 };
 
@@ -165,6 +170,30 @@ export const getMentorStudents = async (mentorId) => {
     ...req.studentId.toObject(),
     requestId: req._id,
     status: 'Active', // Mock active status
+    connectedAt: req.updatedAt
+  }));
+};
+
+export const removeStudent = async (requestId) => {
+  const request = await MentorRequest.findByIdAndDelete(requestId);
+  if (!request) throw new Error("Connection not found");
+  return request;
+};
+
+export const getStudentMentors = async (studentId) => {
+  // Mentors whose requests from this student have been accepted
+  const requests = await MentorRequest.find({ studentId, status: "accepted" })
+    .populate({
+      path: "mentorId",
+      populate: { path: "userId", select: "fullName email avatar" }
+    });
+  
+  return requests.map(req => ({
+    ...req.mentorId.userId.toObject(),
+    mentorProfileId: req.mentorId._id,
+    domain: req.mentorId.domain,
+    requestId: req._id,
+    status: 'Active',
     connectedAt: req.updatedAt
   }));
 };

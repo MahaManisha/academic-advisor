@@ -49,3 +49,12 @@ export const updateUserPreferences = async (preferences) => {
         throw error.response?.data || error.message;
     }
 };
+
+export const updateUserProfile = async (profileData) => {
+    try {
+        const response = await axios.patch('/users/profile', profileData);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

@@ -48,10 +48,14 @@ import MentorOnboarding from '../pages/MentorOnboarding';
 import MentorDashboard from '../pages/MentorDashboard';
 import MentorList from '../pages/MentorList';
 import MentorRequests from '../pages/MentorRequests';
+import MentorStudentsPage from '../pages/MentorStudentsPage';
+import MentorChat from '../pages/MentorChat';
+import MentorSessions from '../pages/MentorSessions';
 import MentorSubPage from '../pages/MentorSubPage';
 import { FaUsers, FaCalendarAlt, FaComment, FaChartLine } from 'react-icons/fa';
 
 // Other Pages
+import StudentSessions from '../pages/StudentSessions';
 import NotFound from '../pages/NotFound';
 import { useAuth } from '../context/AuthContext';
 
@@ -244,6 +248,15 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="/sessions"
+          element={
+            <ProtectedRoute>
+              <StudentSessions />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/advisor-chat"
           element={
             <ProtectedRoute>
@@ -381,7 +394,7 @@ const AppRoutes = () => {
           path="/mentor/students"
           element={
             <ProtectedRoute>
-              <MentorSubPage title="My Students" subtitle="Manage your roster" icon={<FaUsers />} />
+              <MentorStudentsPage />
             </ProtectedRoute>
           }
         />
@@ -389,7 +402,7 @@ const AppRoutes = () => {
           path="/mentor/sessions"
           element={
             <ProtectedRoute>
-              <MentorSubPage title="Sessions" subtitle="View your schedule" icon={<FaCalendarAlt />} />
+              <MentorSessions />
             </ProtectedRoute>
           }
         />
@@ -397,7 +410,7 @@ const AppRoutes = () => {
           path="/mentor/chat"
           element={
             <ProtectedRoute>
-              <MentorSubPage title="Mentor Chat" subtitle="Communicate with students" icon={<FaComment />} />
+              <MentorChat />
             </ProtectedRoute>
           }
         />

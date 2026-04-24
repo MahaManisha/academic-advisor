@@ -491,7 +491,7 @@ const Profile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', department: '', domain: '' });
 
   const [preferences, setPreferences] = useState({
     highContrastMode: false, reducedMotion: false, voiceMode: false, gameMode: true
@@ -512,7 +512,12 @@ const Profile = () => {
       const data = await getUserProfile();
       setProfile(data.user);
       setAnalytics(data.analytics);
-      setFormData({ name: data.user?.fullName || data.user?.name || '', phone: data.user?.phone || '' });
+      setFormData({ 
+        name: data.user?.fullName || data.user?.name || '', 
+        phone: data.user?.phone || '',
+        department: data.user?.department || '',
+        domain: data.user?.domain || ''
+      });
       if (data.user?.accessibilityPreferences) setPreferences(data.user.accessibilityPreferences);
     } catch (err) {
       setError("Failed to load profile data.");
@@ -549,15 +554,31 @@ const Profile = () => {
   const handleEdit = () => setIsEditing(true);
   const handleCancel = () => {
     setIsEditing(false);
-    setFormData({ name: profile?.fullName || profile?.name || '', phone: profile?.phone || '' });
+    setFormData({ 
+      name: profile?.fullName || profile?.name || '', 
+      phone: profile?.phone || '',
+      department: profile?.department || '',
+      domain: profile?.domain || ''
+    });
   };
   const handleSave = async () => {
     try {
-      const updatedUser = { ...profile, fullName: formData.name, phone: formData.phone };
-      setProfile(updatedUser);
-      await updateProfile(updatedUser);
-      setIsEditing(false);
-    } catch (e) { alert("Failed to save changes."); }
+      const updatedUserData = { 
+        fullName: formData.name, 
+        phone: formData.phone,
+        department: formData.department,
+        domain: formData.domain
+      };
+      
+      const res = await updateProfile(updatedUserData);
+      if (res.success) {
+        setProfile(res.user);
+        setIsEditing(false);
+      }
+    } catch (e) { 
+      console.error(e);
+      alert("Failed to save changes."); 
+    }
   };
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleTogglePreference = async (key) => {
@@ -668,8 +689,9 @@ const Profile = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="profile-edit-block">
+                    <div className="profile-edit-block" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <input type="text" name="name" value={formData.name} onChange={handleChange} className="profile-input-field" placeholder="Full Name" />
+                      <input type="text" name="department" value={formData.department} onChange={handleChange} className="profile-input-field sm" placeholder="Department / Course" style={{ fontSize: '14px', height: 'auto', padding: '8px' }} />
                     </div>
                   )}
                 </div>

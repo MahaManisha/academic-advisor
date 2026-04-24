@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaStar, FaUserPlus } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaSearch, FaStar, FaUserPlus, FaComment, FaClock } from 'react-icons/fa';
 import api from '../api/axios';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -8,6 +9,7 @@ import './Dashboard.css'; // Reuse container styling
 
 const MentorList = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,14 +132,34 @@ const MentorList = () => {
                     </div>
                   </div>
 
-                  <button 
-                    className="btn-primary" 
-                    style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                    onClick={() => handleRequestMentorship(mentor.id)}
-                    disabled={requestingId === mentor.id}
-                  >
-                    {requestingId === mentor.id ? 'Sending...' : <><FaUserPlus style={{ marginRight: '8px' }} /> Connect</>}
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {mentor.connectionStatus === 'accepted' ? (
+                      <button 
+                        className="btn-primary" 
+                        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--game-neon-blue)', color: '#000' }}
+                        onClick={() => navigate(`/mentor/chat?id=${mentor.userId}`)}
+                      >
+                        <FaComment style={{ marginRight: '8px' }} /> Chat
+                      </button>
+                    ) : mentor.connectionStatus === 'pending' ? (
+                      <button 
+                        className="btn-primary" 
+                        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(255,255,255,0.1)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' }}
+                        disabled
+                      >
+                        <FaClock style={{ marginRight: '8px' }} /> Pending
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn-primary" 
+                        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                        onClick={() => handleRequestMentorship(mentor.id)}
+                        disabled={requestingId === mentor.id}
+                      >
+                        {requestingId === mentor.id ? 'Sending...' : <><FaUserPlus style={{ marginRight: '8px' }} /> Connect</>}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

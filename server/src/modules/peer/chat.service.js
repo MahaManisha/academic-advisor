@@ -67,3 +67,13 @@ export const markMessagesSeen = async (roomId, viewerId) => {
         }
     );
 };
+export const deleteMessage = async (roomId, messageId) => {
+    await PeerChat.updateOne(
+        { roomId },
+        {
+            $pull: {
+                messages: { _id: messageId }
+            }
+        }
+    );
+};

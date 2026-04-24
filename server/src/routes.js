@@ -22,6 +22,7 @@ import marksheetRoutes from "./modules/marksheet/marksheet.routes.js";
 import careerRoutes from "./modules/career/career.routes.js";
 import interviewRoutes from "./modules/interview/interview.routes.js";
 import mentorRoutes from "./modules/mentor/mentor.routes.js";
+import sessionRoutes from "./modules/session/session.routes.js";
 
 const router = Router();
 
@@ -55,5 +56,6 @@ router.use("/marksheets", marksheetRoutes);
 router.use("/career", careerRoutes);
 router.use("/interview", interviewRoutes);
 router.use("/mentor", mentorRoutes);
+router.use("/sessions", sessionRoutes);
 
 export default router;

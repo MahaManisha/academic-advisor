@@ -20,7 +20,8 @@ import {
   FaCompass,
   FaMicrophone,
   FaChalkboardTeacher,
-  FaComment
+  FaComment,
+  FaVideo
 } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -42,8 +43,10 @@ const Sidebar = ({ isOpen, onClose, user }) => {
       badge: pendingAssessments > 0 ? pendingAssessments : null
     },
     { path: '/planner', icon: <FaCalendarAlt />, label: 'Study Planner' },
+    { path: '/sessions', icon: <FaVideo />, label: 'Sessions' },
     { path: '/advisor-chat', icon: <FaRobot />, label: 'AI Advisor' },
     { path: '/peer-chat', icon: <FaUsers />, label: 'Peer Chat' },
+    { path: '/mentor/chat', icon: <FaComment />, label: 'Mentor Chat' },
     { path: '/mentors', icon: <FaChalkboardTeacher />, label: 'Mentor Hub' },
     { path: '/guilds', icon: <FaShieldAlt />, label: 'Study Factions' },
     { path: '/arena', icon: <FaCrosshairs />, label: 'PvP Arena' },
