@@ -7,11 +7,12 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from project root (server/src/config/../../../.env)
-// Current dir is server/src/config
-const envPath = path.resolve(__dirname, "../../../.env");
+// Load .env from server directory or project root
+const serverEnvPath = path.resolve(__dirname, "../../.env");
+const rootEnvPath = path.resolve(__dirname, "../../../.env");
 
-dotenv.config({ path: envPath });
+dotenv.config({ path: serverEnvPath });
+dotenv.config({ path: rootEnvPath });
 
 
 

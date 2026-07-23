@@ -2,7 +2,7 @@ import FlashcardSet from "./flashcard.model.js";
 import Groq from "groq-sdk";
 
 // Initialize Groq
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key" });
 
 export const generateFlashcards = async (req, res, next) => {
     try {

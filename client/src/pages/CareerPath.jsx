@@ -96,6 +96,59 @@ const CareerPath = () => {
           <div className="career-hero-actions">
             <button
               className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #00f3ff, #a855f7)', color: '#060713', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-1')}
+            >
+              <FaGraduationCap /> Mission 1: Academic Foundation
+            </button>
+
+            <button
+              className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: '#ffffff', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-2')}
+            >
+              <GiArtificialIntelligence /> Mission 2: Career Interest (AHP)
+            </button>
+
+            <button
+              className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #00f3ff)', color: '#060713', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-3')}
+            >
+              <GiArtificialIntelligence /> Mission 3: Fuzzy Learning Profile
+            </button>
+
+            <button
+              className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #00f3ff, #10b981)', color: '#060713', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-4')}
+            >
+              <GiArtificialIntelligence /> Mission 4: Cognitive & Behaviour
+            </button>
+
+            <button
+              className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #10b981, #00f3ff)', color: '#060713', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-5')}
+            >
+              <GiAtom /> Mission 5: Career Compatibility Analysis
+            </button>
+
+            <button
+              className="btn-predict"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: '#ffffff', fontWeight: '800' }}
+              onClick={() => navigate('/career/mission-6')}
+            >
+              <GiAtom /> Mission 6: Academic DNA Generation
+            </button>
+
+
+
+
+
+
+            <button
+              className="btn-predict"
               onClick={handlePredict}
               disabled={predicting}
               id="btn-run-career-prediction"
@@ -106,6 +159,7 @@ const CareerPath = () => {
                 <><FaRocket /> {profile ? 'Re-Predict My Career' : 'Run AI Career Prediction'}</>
               )}
             </button>
+
 
             {profile && (
               <div className="readiness-pill">

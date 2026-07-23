@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 
 // Initialize Groq
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key" });
 
 export const generateArenaQuiz = async (topic) => {
     try {

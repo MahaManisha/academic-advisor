@@ -150,9 +150,9 @@ const AcademicDetails = () => {
                 localStorage.removeItem('academicType');
                 sessionStorage.removeItem('registrationToken');
 
-                // Navigate to next step (Onboarding)
-                // Since completeSignup logs us in, we can access protected routes
-                navigate('/onboarding');
+                // Navigate to next step (Mission 1: Academic Foundation)
+                navigate('/career/mission-1');
+
 
             } catch (err) {
                 console.error(err);

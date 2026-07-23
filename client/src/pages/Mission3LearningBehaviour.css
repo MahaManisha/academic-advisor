@@ -1,0 +1,473 @@
+/* client/src/pages/Mission3LearningBehaviour.css */
+
+:root {
+  --m3-bg: #060713;
+  --m3-card-bg: rgba(13, 16, 38, 0.75);
+  --m3-card-border: rgba(0, 243, 255, 0.25);
+  --m3-cyan: #00f3ff;
+  --m3-purple: #a855f7;
+  --m3-pink: #ec4899;
+  --m3-green: #10b981;
+  --m3-yellow: #f59e0b;
+}
+
+.m3-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 20%, #150d2a 0%, #060713 75%);
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.m3-particles-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.m3-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(236, 72, 153, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 72, 153, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Top Bar */
+.m3-top-bar {
+  position: relative;
+  z-index: 10;
+  padding: 1rem 2rem;
+  background: rgba(6, 7, 19, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(236, 72, 153, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.m3-header-info h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #ec4899, #00f3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.m3-header-info p {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.m3-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.m3-progress-track {
+  width: 220px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.m3-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--m3-pink), var(--m3-cyan));
+  box-shadow: 0 0 12px var(--m3-pink);
+  transition: width 0.4s ease;
+}
+
+.m3-mission-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid var(--m3-pink);
+  color: var(--m3-pink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Main Split Layout */
+.m3-main-view {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  gap: 1.75rem;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
+}
+
+/* Left AI Mentor Panel */
+.m3-mentor-panel {
+  width: 310px;
+  background: var(--m3-card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--m3-card-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.m3-mentor-avatar-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+}
+
+.m3-mentor-avatar-ring {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 2px dashed var(--m3-pink);
+  animation: rotateRing 14s linear infinite;
+}
+
+.m3-mentor-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4c0519, #831843);
+  border: 2px solid var(--m3-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: var(--m3-cyan);
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.4);
+}
+
+.m3-mentor-status {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  background: #10b981;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #060713;
+  box-shadow: 0 0 10px #10b981;
+}
+
+.m3-mentor-name {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  color: #fff;
+}
+
+.m3-mentor-role {
+  font-size: 0.75rem;
+  color: var(--m3-pink);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 1rem;
+}
+
+.m3-mentor-dialog {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.m3-fuzzy-badge {
+  margin-top: auto;
+  width: 100%;
+  padding: 10px;
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px dashed rgba(236, 72, 153, 0.3);
+  border-radius: 10px;
+  font-size: 0.75rem;
+  color: var(--m3-pink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Right Content Panel */
+.m3-content-panel {
+  flex: 1;
+  background: var(--m3-card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--m3-card-border);
+  border-radius: 20px;
+  padding: 1.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+}
+
+.m3-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Floating Cards for Learning Method */
+.m3-floating-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.m3-floating-card {
+  background: rgba(4, 7, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.m3-floating-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--m3-cyan);
+  box-shadow: 0 6px 20px rgba(0, 243, 255, 0.2);
+}
+
+.m3-floating-card.selected {
+  border-color: var(--m3-pink);
+  background: rgba(236, 72, 153, 0.15);
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+}
+
+.m3-card-icon-big {
+  font-size: 1.75rem;
+  color: var(--m3-cyan);
+  margin-bottom: 0.4rem;
+}
+
+/* Circular Gauge Selector (1-10 Dial) */
+.m3-gauge-selector {
+  display: flex;
+  gap: 6px;
+  margin-top: 0.4rem;
+}
+
+.m3-gauge-node {
+  flex: 1;
+  height: 42px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.m3-gauge-node:hover {
+  border-color: var(--m3-purple);
+  color: #fff;
+}
+
+.m3-gauge-node.active {
+  background: linear-gradient(135deg, var(--m3-pink), var(--m3-purple));
+  border-color: var(--m3-pink);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.4);
+}
+
+/* Balance Sliders (Dual Side) */
+.m3-balance-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.m3-balance-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+}
+
+.m3-range-slider {
+  width: 100%;
+  accent-color: var(--m3-pink);
+  cursor: pointer;
+}
+
+/* Toggle Option Cards */
+.m3-toggle-grid {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.4rem;
+}
+
+.m3-toggle-chip {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(4, 7, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.m3-toggle-chip:hover {
+  border-color: var(--m3-cyan);
+  color: #fff;
+}
+
+.m3-toggle-chip.active {
+  background: rgba(0, 243, 255, 0.15);
+  border-color: var(--m3-cyan);
+  color: var(--m3-cyan);
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.25);
+}
+
+/* Real-Time Fuzzy Output Meters */
+.m3-fuzzy-results-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.m3-meter-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  border-radius: 12px;
+  padding: 0.85rem;
+  text-align: center;
+}
+
+.m3-meter-score {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--m3-cyan);
+  margin-bottom: 2px;
+}
+
+.m3-meter-name {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* Nav Footer */
+.m3-nav-footer {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.m3-btn-back {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.m3-btn-next {
+  background: linear-gradient(90deg, var(--m3-pink), var(--m3-purple));
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.35);
+}
+
+.m3-btn-next:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Modal */
+.m3-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(6, 7, 19, 0.85);
+  backdrop-filter: blur(16px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m3-modal-card {
+  background: var(--m3-card-bg);
+  border: 1px solid var(--m3-pink);
+  box-shadow: 0 0 50px rgba(236, 72, 153, 0.35);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 520px;
+  width: 90%;
+  text-align: center;
+}

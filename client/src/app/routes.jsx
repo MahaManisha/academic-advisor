@@ -40,7 +40,19 @@ import Guilds from '../pages/Guilds';
 import Flashcards from '../pages/Flashcards';
 import Arena from '../pages/Arena';
 import CareerPath from '../pages/CareerPath';
+import Mission1AcademicFoundation from '../pages/Mission1AcademicFoundation';
+import Mission2CareerInterest from '../pages/Mission2CareerInterest';
+import Mission3LearningBehaviour from '../pages/Mission3LearningBehaviour';
+import Mission4CognitiveBehaviour from '../pages/Mission4CognitiveBehaviour';
+import Mission5Compatibility from '../pages/Mission5Compatibility';
+import Mission6AcademicDna from '../pages/Mission6AcademicDna';
 import InterviewBot from '../pages/InterviewBot';
+
+
+
+
+
+
 
 // Mentor Pages
 import MentorSignup from '../pages/MentorSignup';
@@ -345,6 +357,66 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/career/mission-1"
+          element={
+            <ProtectedRoute>
+              <Mission1AcademicFoundation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career/mission-2"
+          element={
+            <ProtectedRoute>
+              <Mission2CareerInterest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career/mission-3"
+          element={
+            <ProtectedRoute>
+              <Mission3LearningBehaviour />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career/mission-4"
+          element={
+            <ProtectedRoute>
+              <Mission4CognitiveBehaviour />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career/mission-5"
+          element={
+            <ProtectedRoute>
+              <Mission5Compatibility />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/career/mission-6"
+          element={
+            <ProtectedRoute>
+              <Mission6AcademicDna />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+
+
+
 
         <Route
           path="/interview"

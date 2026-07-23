@@ -13,7 +13,6 @@ const checkVerified = (req, res, next) => {
 
 router.get('/questions', protect, checkVerified, onboardingController.getQuestions);
 router.post('/submit', protect, checkVerified, onboardingController.submitOnboarding);
-router.post('/diagnostic/test', protect, checkVerified, onboardingController.getDiagnosticTest);
-router.post('/diagnostic/evaluate', protect, checkVerified, onboardingController.evaluateDiagnosticTest);
 
 export default router;
+

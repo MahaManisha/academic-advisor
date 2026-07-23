@@ -90,19 +90,28 @@ const ProtectedRoute = ({ children }) => {
     return children;
   }
 
-  // ✅ For STUDENTS: Check onboarding status
-  const onboardingPaths = ['/onboarding', '/assessment-test'];
+  // ✅ For STUDENTS: Check onboarding status (Mission 1 to Mission 6 Workflow)
+  const onboardingPaths = [
+    '/onboarding',
+    '/career/mission-1',
+    '/career/mission-2',
+    '/career/mission-3',
+    '/career/mission-4',
+    '/career/mission-5',
+    '/career/mission-6'
+  ];
   const isTryingToAccessOnboarding = onboardingPaths.includes(location.pathname);
 
-  // Case 1: Student NOT onboarded -> Must go to onboarding
+  // Case 1: Student NOT onboarded -> Must go to Mission 1
   if (!isOnboarded && !isTryingToAccessOnboarding) {
-    return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/career/mission-1" replace />;
   }
 
-  // Case 2: Student ALREADY onboarded -> Must NOT go to onboarding
+  // Case 2: Student ALREADY onboarded -> Must NOT re-enter onboarding
   if (isOnboarded && isTryingToAccessOnboarding) {
     return <Navigate to="/dashboard" replace />;
   }
+
 
   // ✅ All checks passed: render the component
   return children;

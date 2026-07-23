@@ -1,7 +1,7 @@
 const Groq = require('groq-sdk');
 
 // Ensure Groq API key is defined in the environment, not hardcoded
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key" });
 
 /**
  * Standardized modular helper for calling the LLM.

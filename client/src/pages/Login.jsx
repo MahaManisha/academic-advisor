@@ -61,10 +61,11 @@ const Login = () => {
       } else {
         await triggerAction('DAILY_LOGIN');
 
-        // Redirect to onboarding if not completed
+        // Redirect to Mission 1 if not onboarded
         if (!result.user.onboardingCompleted) {
-          navigate('/onboarding');
+          navigate('/career/mission-1');
         } else {
+
           navigate('/dashboard');
         }
       }

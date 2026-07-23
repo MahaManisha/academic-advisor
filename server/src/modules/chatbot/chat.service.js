@@ -4,7 +4,7 @@ import Chat from "./chat.model.js";
 import User from "../user/user.model.js";
 
 // ── Groq client (free tier — no billing needed) ──────────────────────────────
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy_key" });
 
 // Free Groq models in priority order (fallback chain)
 const GROQ_MODELS = [

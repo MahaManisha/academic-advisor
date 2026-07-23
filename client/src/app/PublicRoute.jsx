@@ -13,10 +13,11 @@ const PublicRoute = ({ children }) => {
             return <Navigate to="/admin/dashboard" replace />;
         }
 
-        // Let verified students complete onboarding
+        // Let verified students complete Mission-based onboarding
         if (user?.emailVerified && !user?.onboardingCompleted) {
-            return <Navigate to="/onboarding" replace />;
+            return <Navigate to="/career/mission-1" replace />;
         }
+
 
         return <Navigate to="/dashboard" replace />;
     }
